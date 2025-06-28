@@ -22,6 +22,21 @@ word = takeWhile1 $ \x -> not $ isSpace x
 --                     Inline Parsing                     --
 ------------------------------------------------------------
 
+plainText :: Parser Inline
+plainText = fmap PlainText $ word <|> whitespace
+
+bareUrl :: Parser Inline
+bareUrl = _
+
+angledUrl :: Parser Inline
+angledUrl = _
+
+inline :: Parser Inline
+inline = 
+    bareUrl
+    <|> angledUrl
+    <|> plainText
+
 ------------------------------------------------------------
 --                      Block Parsing                     --
 ------------------------------------------------------------
