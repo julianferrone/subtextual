@@ -26,6 +26,8 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Parser
+      Subtext
   other-modules:
       Paths_subtext
   autogen-modules:
@@ -37,6 +39,7 @@ library
       attoparsec
     , base >=4.7 && <5
     , lucid
+    , text
   default-language: Haskell2010
 
 executable subtext-exe
@@ -53,6 +56,7 @@ executable subtext-exe
     , base >=4.7 && <5
     , lucid
     , subtext
+    , text
   default-language: Haskell2010
 
 test-suite subtext-test
@@ -70,4 +74,5 @@ test-suite subtext-test
     , base >=4.7 && <5
     , lucid
     , subtext
+    , text
   default-language: Haskell2010
