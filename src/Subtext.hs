@@ -2,15 +2,17 @@ module Subtext
     ( Inline, Block, Document
     ) where
 
+import qualified Data.Text as T
+
 data Inline =
-    PlainText Text
-    | BareUrl Text
-    | AngledUrl Text
+    PlainText T.Text
+    | BareUrl T.Text
+    | AngledUrl T.Text
 
 
 data Block = 
     Paragraph [Inline]
-    | Heading Text
+    | Heading T.Text
     | List [Inline]
     | Quote [Inline]
     | Blank
