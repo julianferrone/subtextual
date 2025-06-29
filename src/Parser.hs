@@ -56,7 +56,15 @@ inline =
     <|> plainText
 
 inlines :: Parser [Inline]
-inlines = many inline
+inlines = do
+    parsed <- many inline
+    let parsed' = smoosh parsed []
+    return parsed'
+    where
+        smoosh :: [Inline] -> [Inline] -> [Inline]
+        smoosh [] finished = reverse finished
+        smoosh (PlainText p : todo) (PlainText p' : done) = smoosh todo $ PlainText (p' <> p) : done
+        smoosh (i : todo) done = smoosh todo (i : done)
 
 ------------------------------------------------------------
 --                      Block Parsing                     --
