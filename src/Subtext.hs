@@ -8,7 +8,7 @@ data Inline =
     PlainText T.Text
     | BareUrl T.Text
     | AngledUrl T.Text
-
+    deriving (Show, Eq)
 
 data Block = 
     Paragraph [Inline]
@@ -16,5 +16,6 @@ data Block =
     | Bullet [Inline]
     | Quote [Inline]
     | Blank
+    deriving (Show, Eq)
 
 type Document = [Block]
