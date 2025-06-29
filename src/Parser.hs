@@ -62,6 +62,48 @@ inlines = many inline
 --                      Block Parsing                     --
 ------------------------------------------------------------
 
+----------                 Helpers                ----------
+
+prefixed :: Char -> Parser a -> Parser a
+prefixed c parser = char c *> skipSpace *> parser
+
+takeUntilEndOfLine :: Parser T.Text
+takeUntilEndOfLine = do
+    line <- takeWhile1 $ not . isEndOfLine
+    endOfLine
+    return line
+
+----------              Block Parsing             ----------
+
+paragraph :: Parser Block
+paragraph = Paragraph <$> inlines
+
+heading :: Parser Block
+heading = Heading <$> prefixed '#' takeUntilEndOfLine
+
+bullet :: Parser Block
+bullet = Bullet <$> prefixed '-' inlines
+
+quote :: Parser Block
+quote = Quote <$> prefixed '>' inlines
+
+blank :: Parser Block
+blank = do
+    endOfLine
+    endOfLine
+    return Blank
+
+block :: Parser Block
+block = 
+    heading
+    <|> bullet
+    <|> quote
+    <|> paragraph
+    <|> blank
+
 ------------------------------------------------------------
 --                    Document Parsing                    --
 ------------------------------------------------------------
+
+document :: Parser Document
+document = many block
