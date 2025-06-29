@@ -33,10 +33,9 @@ string' = string . T.pack
 
 bareUrl :: Parser Inline
 bareUrl = do
-    schema <- string' "http" <|> string' "https"
-    string' "://"
+    schema <- string' "https://" <|> string' "http://"
     body <- takeWhile1 isUrlChar
-    let url = schema <> T.pack "://" <> body
+    let url = schema <> body
     return $ BareUrl url
 
 isAngledUrlChar :: Char -> Bool
