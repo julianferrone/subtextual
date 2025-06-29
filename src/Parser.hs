@@ -1,5 +1,5 @@
 module Parser
-    ( ) where
+    (block, document) where
 
 import Control.Applicative
 import Data.Char
