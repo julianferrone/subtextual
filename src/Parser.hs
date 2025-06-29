@@ -55,6 +55,9 @@ inline =
     <|> angledUrl
     <|> plainText
 
+inlines :: Parser [Inline]
+inlines = many inline
+
 ------------------------------------------------------------
 --                      Block Parsing                     --
 ------------------------------------------------------------
