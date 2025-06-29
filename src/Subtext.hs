@@ -13,7 +13,7 @@ data Inline =
 data Block = 
     Paragraph [Inline]
     | Heading T.Text
-    | List [Inline]
+    | Bullet [Inline]
     | Quote [Inline]
     | Blank
 
