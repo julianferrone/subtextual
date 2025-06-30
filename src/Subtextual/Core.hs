@@ -1,5 +1,5 @@
 module Subtextual.Core
-    ( Inline(..), Block(..), Document(..)
+    ( Inline(..), Block(..), Document
     ) where
 
 import qualified Data.Text as T
