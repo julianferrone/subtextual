@@ -117,10 +117,21 @@ nonBlankBlock =
     <|> paragraph
     <?> "nonBlankBlock"
 
+nonBlankBlocks :: Parser Document
+nonBlankBlocks = many1 nonBlankBlock <?> "nonBlankBlocks"
+
+----------              Blank Blocks              ----------
+
+newLines :: Parser Document
+newLines = do
+    eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
+    let count = length eols
+    return (replicate (count - 1) Blank)
+    <?> "newLines"
 
 ------------------------------------------------------------
 --                    Document Parsing                    --
 ------------------------------------------------------------
 
 document :: Parser Document
-document = many (block <* endOfLine)
+document = concat <$> many1 (nonBlankBlocks <|> newLines) <?> "document"
