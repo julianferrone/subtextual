@@ -142,7 +142,7 @@ newLines :: Parser Document
 newLines = do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
     let len = length eols
-    return (replicate (len - 1) Blank)
+    return $ replicate (len - 1) Blank
     <?> "newLines"
 
 ------------------------------------------------------------
