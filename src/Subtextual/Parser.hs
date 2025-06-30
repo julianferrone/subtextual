@@ -54,8 +54,6 @@ bareUrl = do
             c2 <- skip isSpace <|> endOfLine
             return ()
 
-
-
 isAngledUrlChar :: Char -> Bool
 isAngledUrlChar c = not $ c == '<' || c == '>' || isSpace c
 
@@ -66,10 +64,25 @@ angledUrl = do
     string' ">"
     return $ AngledUrl url
 
+isSlashLinkChar :: Char -> Bool
+isSlashLinkChar c = 
+    isAlpha c 
+    || isDigit c 
+    || c == '-' 
+    || c == '_' 
+    || c == '/' 
+
+slashLink :: Parser Inline
+slashLink = do
+    char '/'
+    link <- takeWhile1 isSlashLinkChar
+    return $ SlashLink link
+
 inline :: Parser Inline
 inline = 
     bareUrl
     <|> angledUrl
+    <|> slashLink
     <|> plainText
 
 inlines :: Parser [Inline]

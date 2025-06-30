@@ -54,6 +54,11 @@ spec = do
                 Parser.nonBlankBlock
                 (T.pack "> Quote")
                 (Quote [PlainText (T.pack "Quote")])
+        it "parses a slashlink" $ do
+            shouldMatch
+                Parser.nonBlankBlock
+                (T.pack "/foo/bar") 
+                (Paragraph [SlashLink (T.pack "foo/bar")])
     describe "document" $ do
         it "parses a whole document" $ do
             shouldMatch
@@ -76,7 +81,11 @@ spec = do
                         PlainText (T.pack " )")
                     ],
                     Blank,
-                    Paragraph [PlainText (T.pack "Evolving systems exist in /punctuated-equilibrium.")],
+                    Paragraph [
+                        PlainText (T.pack "Evolving systems exist in "),
+                        SlashLink (T.pack "punctuated-equilibrium"),
+                        PlainText (T.pack ".")
+                    ],
                     Blank,
                     Heading (T.pack "Questions"),
                     Blank,
