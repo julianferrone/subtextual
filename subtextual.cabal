@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Subtextual.Core
+      Subtextual.Html
       Subtextual.Parser
   other-modules:
       Paths_subtextual
