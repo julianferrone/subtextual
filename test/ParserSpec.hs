@@ -39,3 +39,8 @@ spec = do
                     PlainText (T.pack ", and this is an angle URL: "),
                     AngledUrl (T.pack "doi:10.1000/100")
                 ])
+        it "parses a heading" $ do
+            shouldMatch
+                Parser.block
+                (T.pack "# Header")
+                (Heading (T.pack "Header"))
