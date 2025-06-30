@@ -13,25 +13,25 @@ shouldMatch parser input result = parseOnly parser input `shouldBe` Right result
 
 spec :: Spec
 spec = do
-    describe "block" $ do
+    describe "nonBlankBlock" $ do
         it "parses a paragraph" $ do
             shouldMatch 
-                Parser.block 
+                Parser.nonBlankBlock 
                 (T.pack "Hello, world!")
                 (Paragraph [PlainText (T.pack "Hello, world!")])
         it "parses a HTTP URL" $ do
             shouldMatch
-                Parser.block
+                Parser.nonBlankBlock
                 (T.pack "http://www.google.com")
                 (Paragraph [BareUrl (T.pack "http://www.google.com")])      
         it "parses a HTTPS URL" $ do
             shouldMatch
-                Parser.block
+                Parser.nonBlankBlock
                 (T.pack "https://www.google.com")
                 (Paragraph [BareUrl (T.pack "https://www.google.com")])         
         it "parses HTTP and angle-delimited URLs" $ do
             shouldMatch
-                Parser.block
+                Parser.nonBlankBlock
                 (T.pack "This is a HTTP URL: https://www.google.com, and this is an angle URL: <doi:10.1000/100>")
                 (Paragraph [
                     PlainText (T.pack "This is a HTTP URL: "),
@@ -41,29 +41,19 @@ spec = do
                 ])
         it "parses a heading" $ do
             shouldMatch
-                Parser.block
+                Parser.nonBlankBlock
                 (T.pack "# Header")
                 (Heading (T.pack "Header"))
         it "parses a bullet" $ do
             shouldMatch
-                Parser.block
+                Parser.nonBlankBlock
                 (T.pack "- Bullet")
                 (Bullet [PlainText (T.pack "Bullet")])
         it "parses a quote" $ do
             shouldMatch
-                Parser.block
+                Parser.nonBlankBlock
                 (T.pack "> Quote")
                 (Quote [PlainText (T.pack "Quote")])
-        it "parses a blank line (newline character)" $ do
-            shouldMatch
-                Parser.block
-                (T.pack "\n")
-                Blank
-        it "parses a blank line (carriage return followed by newline character)" $ do
-            shouldMatch
-                Parser.block
-                (T.pack "\r\n")
-                Blank
     describe "document" $ do
         it "parses a whole document" $ do
             shouldMatch
