@@ -47,8 +47,8 @@ bareUrl = do
 
         punctuationBoundary :: Parser ()
         punctuationBoundary = do
-            c1 <- char '.' <|> char ';' <|> char ','
-            c2 <- skip isSpace <|> endOfLine
+            char '.' <|> char ';' <|> char ','
+            skip isSpace <|> endOfLine
             return ()
 
 isAngledUrlChar :: Char -> Bool
