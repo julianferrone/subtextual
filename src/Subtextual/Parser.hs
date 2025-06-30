@@ -16,17 +16,17 @@ import Subtextual.Core
 ------------------------------------------------------------
 
 whitespace :: Parser T.Text
-whitespace = takeWhile1 isHorizontalSpace
+whitespace = takeWhile1 isHorizontalSpace <?> "whitespace"
 
 word :: Parser T.Text
-word = takeWhile1 $ not . isSpace
+word = takeWhile1 (not . isSpace) <?> "word"
 
 ------------------------------------------------------------
 --                     Inline Parsing                     --
 ------------------------------------------------------------
 
 plainText :: Parser Inline
-plainText = fmap PlainText $ word <|> whitespace
+plainText = PlainText <$> (word <|> whitespace) <?> "plainText"
 
 string' :: String -> Parser T.Text
 string' = string . T.pack
@@ -37,6 +37,7 @@ bareUrl = do
     body <- manyTill anyChar $ lookAhead endOfUrl
     let url = schema <> T.pack body
     return $ BareUrl url
+    <?> "bareUrl"
 
     where
         endOfUrl :: Parser ()
@@ -60,6 +61,7 @@ angledUrl = do
     url <- takeWhile1 isAngledUrlChar
     string' ">"
     return $ AngledUrl url
+    <?> "angledUrl"
 
 isSlashLinkChar :: Char -> Bool
 isSlashLinkChar c = 
@@ -74,6 +76,7 @@ slashLink = do
     char '/'
     link <- takeWhile1 isSlashLinkChar
     return $ SlashLink link
+    <?> "slashLink"
 
 inline :: Parser Inline
 inline = 
@@ -81,12 +84,14 @@ inline =
     <|> angledUrl
     <|> slashLink
     <|> plainText
+    <?> "inline"
 
 inlines :: Parser [Inline]
 inlines = do
     parsed <- many1 inline
     let parsed' = smoosh parsed []
     return parsed'
+    <?> "inlines"
     where
         smoosh :: [Inline] -> [Inline] -> [Inline]
         smoosh [] finished = reverse finished
@@ -104,7 +109,7 @@ prefixed :: Char -> Parser a -> Parser a
 prefixed c parser = char c *> skipSpace *> parser
 
 takeUntilEndOfLine :: Parser T.Text
-takeUntilEndOfLine = takeWhile1 $ not . isEndOfLine
+takeUntilEndOfLine = takeWhile1 $ not . isEndOfLine  <?> "takeUntilEndOfLine"
 
 ----------            Non-Blank Blocks            ----------
 
