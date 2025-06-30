@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Lib
+import Subtextual.Core
 
 main :: IO ()
-main = someFunc
+main = putStrLn "Hello, world!"

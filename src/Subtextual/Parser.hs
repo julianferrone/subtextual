@@ -1,4 +1,4 @@
-module Parser
+module Subtextual.Parser
     (nonBlankBlock, document) where
 
 import Control.Applicative
@@ -9,7 +9,7 @@ import Data.Attoparsec.Text
 import Data.Attoparsec.Combinator
 import qualified Data.Text as T
 
-import Subtext
+import Subtextual.Core
 
 ------------------------------------------------------------
 --                      Text Parsing                      --

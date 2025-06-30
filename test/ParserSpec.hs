@@ -1,11 +1,11 @@
 module ParserSpec (spec) where
 
-import qualified Parser
+import Subtextual.Core
+import qualified Subtextual.Parser as Parser
 
 import qualified Data.Text as T
 import Data.Attoparsec.Text
 
-import Subtext
 import Test.Hspec
 
 shouldMatch :: (Show a, Eq a) => Parser a -> T.Text -> a -> IO ()

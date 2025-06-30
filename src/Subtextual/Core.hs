@@ -1,4 +1,4 @@
-module Subtext
+module Subtextual.Core
     ( Inline(..), Block(..), Document(..)
     ) where
 
