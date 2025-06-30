@@ -13,7 +13,7 @@ shouldMatch parser input result = parseOnly parser input `shouldBe` Right result
 
 spec :: Spec
 spec = do
-    describe "Parser" $ do
+    describe "block" $ do
         it "parses a paragraph" $ do
             shouldMatch 
                 Parser.block 
@@ -44,3 +44,57 @@ spec = do
                 Parser.block
                 (T.pack "# Header")
                 (Heading (T.pack "Header"))
+        it "parses a bullet" $ do
+            shouldMatch
+                Parser.block
+                (T.pack "- Bullet")
+                (Bullet [PlainText (T.pack "Bullet")])
+        it "parses a quote" $ do
+            shouldMatch
+                Parser.block
+                (T.pack "> Quote")
+                (Quote [PlainText (T.pack "Quote")])
+        it "parses a blank line (newline character)" $ do
+            shouldMatch
+                Parser.block
+                (T.pack "\n")
+                Blank
+        it "parses a blank line (carriage return followed by newline character)" $ do
+            shouldMatch
+                Parser.block
+                (T.pack "\r\n")
+                Blank
+    describe "document" $ do
+        it "parses a whole document" $ do
+            shouldMatch
+                Parser.document
+                (T.pack "# Overview\n\nEvolution is a behavior that emerges in any system with:\n\n- Mutation\n- Heredity\n- Selection\n\nEvolutionary systems often generate unexpected solutions. Nature selects for good enough.\n\n> There is no such thing as advantageous in a general sense. There is only advantageous for the circumstances you\8217re living in. (Olivia Judson, Santa Fe Institute https://overcast.fm/+UtNTAcN2Y/13:36 )\n\nEvolving systems exist in /punctuated-equilibrium.\n\n# Questions\n\n- What systems (beside biology) exhibit evolutionary behavior? Remember, evolution happens in any system with mutation, heredity, selection.\n- What happens to an evolutionary system when you remove mutation? Heredity? Selection?\n- Do you see a system with one of these properties? How can you introduce the other two?\n\n# See also\n\nhttps://en.wikipedia.org/wiki/Evolutionary_systems\n")
+                [
+                    Heading (T.pack "Overview"),
+                    Blank,
+                    Paragraph [PlainText (T.pack "Evolution is a behavior that emerges in any system with:")],
+                    Blank,
+                    Bullet [PlainText (T.pack "Mutation")],
+                    Bullet [PlainText (T.pack "Heredity")],
+                    Bullet [PlainText (T.pack "Selection")],
+                    Blank,
+                    Paragraph [PlainText (T.pack "Evolutionary systems often generate unexpected solutions. Nature selects for good enough.")],
+                    Blank,
+                    Quote [
+                        PlainText (T.pack "There is no such thing as advantageous in a general sense. There is only advantageous for the circumstances you’re living in. (Olivia Judson, Santa Fe Institute "),
+                        BareUrl (T.pack "https://overcast.fm/+UtNTAcN2Y/13:36"),
+                        PlainText (T.pack " )")
+                    ],
+                    Blank,
+                    Paragraph [PlainText (T.pack "Evolving systems exist in /punctuated-equilibrium.")],
+                    Blank,
+                    Heading (T.pack "Questions"),
+                    Blank,
+                    Bullet [PlainText (T.pack "What systems (beside biology) exhibit evolutionary behavior? Remember, evolution happens in any system with mutation, heredity, selection.")],
+                    Bullet [PlainText (T.pack "What happens to an evolutionary system when you remove mutation? Heredity? Selection?")],
+                    Bullet [PlainText (T.pack "Do you see a system with one of these properties? How can you introduce the other two?")],
+                    Blank,
+                    Heading (T.pack "See also"),
+                    Blank,
+                    Paragraph [BareUrl (T.pack "https://en.wikipedia.org/wiki/Evolutionary_systems")]
+                ]
