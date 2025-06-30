@@ -1,5 +1,5 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
-module Subtextual.Html () where
+module Subtextual.Html (block, document) where
 
 import Subtextual.Core
 import Lucid
