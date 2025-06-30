@@ -74,7 +74,7 @@ inline =
 
 inlines :: Parser [Inline]
 inlines = do
-    parsed <- many inline
+    parsed <- many1 inline
     let parsed' = smoosh parsed []
     return parsed'
     where
