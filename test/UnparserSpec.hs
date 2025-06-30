@@ -48,3 +48,40 @@ spec = do
                 `shouldBe` T.pack "> Here's a quote"
         it "unparses a blank line" $ do
             Unparser.block Blank `shouldBe` T.pack ""
+    describe "document" $ do
+        it "unparses a document" $ do
+            Unparser.document [
+                    Heading (T.pack "Overview"),
+                    Blank,
+                    Paragraph [PlainText (T.pack "Evolution is a behavior that emerges in any system with:")],
+                    Blank,
+                    Bullet [PlainText (T.pack "Mutation")],
+                    Bullet [PlainText (T.pack "Heredity")],
+                    Bullet [PlainText (T.pack "Selection")],
+                    Blank,
+                    Paragraph [PlainText (T.pack "Evolutionary systems often generate unexpected solutions. Nature selects for good enough.")],
+                    Blank,
+                    Quote [
+                        PlainText (T.pack "There is no such thing as advantageous in a general sense. There is only advantageous for the circumstances you’re living in. (Olivia Judson, Santa Fe Institute "),
+                        BareUrl (T.pack "https://overcast.fm/+UtNTAcN2Y/13:36"),
+                        PlainText (T.pack " )")
+                    ],
+                    Blank,
+                    Paragraph [
+                        PlainText (T.pack "Evolving systems exist in "),
+                        SlashLink (T.pack "punctuated-equilibrium"),
+                        PlainText (T.pack ".")
+                    ],
+                    Blank,
+                    Heading (T.pack "Questions"),
+                    Blank,
+                    Bullet [PlainText (T.pack "What systems (beside biology) exhibit evolutionary behavior? Remember, evolution happens in any system with mutation, heredity, selection.")],
+                    Bullet [PlainText (T.pack "What happens to an evolutionary system when you remove mutation? Heredity? Selection?")],
+                    Bullet [PlainText (T.pack "Do you see a system with one of these properties? How can you introduce the other two?")],
+                    Blank,
+                    Blank,
+                    Heading (T.pack "See also"),
+                    Blank,
+                    Paragraph [BareUrl (T.pack "https://en.wikipedia.org/wiki/Evolutionary_systems")]
+                ]
+                `shouldBe` T.pack "# Overview\n\nEvolution is a behavior that emerges in any system with:\n\n- Mutation\n- Heredity\n- Selection\n\nEvolutionary systems often generate unexpected solutions. Nature selects for good enough.\n\n> There is no such thing as advantageous in a general sense. There is only advantageous for the circumstances you\8217re living in. (Olivia Judson, Santa Fe Institute https://overcast.fm/+UtNTAcN2Y/13:36 )\n\nEvolving systems exist in /punctuated-equilibrium.\n\n# Questions\n\n- What systems (beside biology) exhibit evolutionary behavior? Remember, evolution happens in any system with mutation, heredity, selection.\n- What happens to an evolutionary system when you remove mutation? Heredity? Selection?\n- Do you see a system with one of these properties? How can you introduce the other two?\n\n\n# See also\n\nhttps://en.wikipedia.org/wiki/Evolutionary_systems"
