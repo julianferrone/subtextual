@@ -2,8 +2,11 @@ module Parser
     (block, document) where
 
 import Control.Applicative
+import Control.Monad
 import Data.Char
+import Data.Functor
 import Data.Attoparsec.Text
+import Data.Attoparsec.Combinator
 import qualified Data.Text as T
 
 import Subtext
@@ -34,9 +37,24 @@ string' = string . T.pack
 bareUrl :: Parser Inline
 bareUrl = do
     schema <- string' "https://" <|> string' "http://"
-    body <- takeWhile1 isUrlChar
-    let url = schema <> body
+    body <- manyTill anyChar $ lookAhead endOfUrl
+    let url = schema <> T.pack body
     return $ BareUrl url
+
+    where
+        endOfUrl :: Parser ()
+        endOfUrl = 
+            punctuationBoundary 
+            <|> space $> () 
+            <|> endOfInput
+
+        punctuationBoundary :: Parser ()
+        punctuationBoundary = do
+            c1 <- char '.' <|> char ';' <|> char ','
+            c2 <- skip isSpace <|> endOfLine
+            return ()
+
+
 
 isAngledUrlChar :: Char -> Bool
 isAngledUrlChar c = not $ c == '<' || c == '>' || isSpace c
