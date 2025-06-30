@@ -1,5 +1,5 @@
 module Parser
-    (block, document) where
+    (nonBlankBlock, document) where
 
 import Control.Applicative
 import Control.Monad
@@ -95,7 +95,7 @@ prefixed c parser = char c *> skipSpace *> parser
 takeUntilEndOfLine :: Parser T.Text
 takeUntilEndOfLine = takeWhile1 $ not . isEndOfLine
 
-----------              Block Parsing             ----------
+----------            Non-Blank Blocks            ----------
 
 paragraph :: Parser Block
 paragraph = Paragraph <$> inlines
@@ -109,17 +109,14 @@ bullet = Bullet <$> prefixed '-' inlines
 quote :: Parser Block
 quote = Quote <$> prefixed '>' inlines
 
-blank :: Parser Block
-blank = Blank <$ (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
-
-
-block :: Parser Block
-block = 
+nonBlankBlock :: Parser Block
+nonBlankBlock = 
     heading
     <|> bullet
     <|> quote
     <|> paragraph
-    <|> blank
+    <?> "nonBlankBlock"
+
 
 ------------------------------------------------------------
 --                    Document Parsing                    --
