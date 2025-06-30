@@ -1,4 +1,5 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Subtextual.Html (block, document) where
 
 import Subtextual.Core
@@ -12,6 +13,7 @@ inline :: Inline -> Html ()
 inline (PlainText p) = (span_ . toHtml) p
 inline (BareUrl url) = a_ [href_ url] $ toHtml url
 inline (AngledUrl url) = a_ [href_ url] $ toHtml url
+inline (SlashLink sl) = a_ [href_ sl, class_ "slashlink"] $ toHtml sl
 
 inlines :: [Inline] -> Html ()
 inlines = mconcat . map inline
