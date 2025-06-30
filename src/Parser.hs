@@ -112,7 +112,6 @@ quote = Quote <$> prefixed '>' inlines
 blank :: Parser Block
 blank = do
     endOfLine
-    endOfLine
     return Blank
 
 block :: Parser Block
@@ -128,4 +127,4 @@ block =
 ------------------------------------------------------------
 
 document :: Parser Document
-document = many block
+document = many (block <* endOfLine)
