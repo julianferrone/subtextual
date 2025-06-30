@@ -110,9 +110,8 @@ quote :: Parser Block
 quote = Quote <$> prefixed '>' inlines
 
 blank :: Parser Block
-blank = do
-    endOfLine
-    return Blank
+blank = Blank <$ (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
+
 
 block :: Parser Block
 block = 
