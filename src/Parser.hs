@@ -93,10 +93,7 @@ prefixed :: Char -> Parser a -> Parser a
 prefixed c parser = char c *> skipSpace *> parser
 
 takeUntilEndOfLine :: Parser T.Text
-takeUntilEndOfLine = do
-    line <- takeWhile1 $ not . isEndOfLine
-    endOfLine
-    return line
+takeUntilEndOfLine = takeWhile1 $ not . isEndOfLine
 
 ----------              Block Parsing             ----------
 
