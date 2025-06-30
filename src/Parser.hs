@@ -98,16 +98,16 @@ takeUntilEndOfLine = takeWhile1 $ not . isEndOfLine
 ----------            Non-Blank Blocks            ----------
 
 paragraph :: Parser Block
-paragraph = Paragraph <$> inlines
+paragraph = Paragraph <$> inlines <?> "paragraph"
 
 heading :: Parser Block
-heading = Heading <$> prefixed '#' takeUntilEndOfLine
+heading = Heading <$> prefixed '#' takeUntilEndOfLine <?> "heading"
 
 bullet :: Parser Block
-bullet = Bullet <$> prefixed '-' inlines
+bullet = Bullet <$> prefixed '-' inlines <?> "bullet"
 
 quote :: Parser Block
-quote = Quote <$> prefixed '>' inlines
+quote = Quote <$> prefixed '>' inlines <?> "quote"
 
 nonBlankBlock :: Parser Block
 nonBlankBlock = 
