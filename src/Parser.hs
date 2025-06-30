@@ -16,7 +16,7 @@ import Subtext
 ------------------------------------------------------------
 
 whitespace :: Parser T.Text
-whitespace = takeWhile1 (\c -> c == ' ' || c == '\t')
+whitespace = takeWhile1 isHorizontalSpace
 
 word :: Parser T.Text
 word = takeWhile1 $ not . isSpace
