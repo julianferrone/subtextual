@@ -28,9 +28,6 @@ word = takeWhile1 $ not . isSpace
 plainText :: Parser Inline
 plainText = fmap PlainText $ word <|> whitespace
 
-isUrlChar :: Char -> Bool
-isUrlChar c = not $ c == '>' || isSpace c
-
 string' :: String -> Parser T.Text
 string' = string . T.pack
 
