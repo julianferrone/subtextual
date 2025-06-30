@@ -90,7 +90,8 @@ inlines = do
     where
         smoosh :: [Inline] -> [Inline] -> [Inline]
         smoosh [] finished = reverse finished
-        smoosh (PlainText p : todo) (PlainText p' : done) = smoosh todo $ PlainText (p' <> p) : done
+        smoosh (PlainText p : todo) (PlainText p' : done) = 
+            smoosh todo $ PlainText (p' <> p) : done
         smoosh (i : todo) done = smoosh todo (i : done)
 
 ------------------------------------------------------------
@@ -135,8 +136,8 @@ nonBlankBlocks = many1 nonBlankBlock <?> "nonBlankBlocks"
 newLines :: Parser Document
 newLines = do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
-    let count = length eols
-    return (replicate (count - 1) Blank)
+    let len = length eols
+    return (replicate (len - 1) Blank)
     <?> "newLines"
 
 ------------------------------------------------------------
