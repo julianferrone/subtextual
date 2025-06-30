@@ -10,11 +10,14 @@ inline (BareUrl url) = url
 inline (AngledUrl url) = T.pack "<" <> url <> T.pack ">"
 inline (SlashLink sl) = T.pack "/" <> sl
 
+inlines :: [Inline] -> T.Text
+inlines = mconcat . map inline
+
 block :: Block -> T.Text
-block (Paragraph p) = (mconcat . map inline) p
+block (Paragraph p) = inlines p
 block (Heading h) = T.pack "# " <> h
-block (Bullet b) = T.pack "- " <> (mconcat . map inline) b
-block (Quote q) = T.pack "> " <> (mconcat . map inline) q
+block (Bullet b) = T.pack "- " <> inlines b
+block (Quote q) = T.pack "> " <> inlines q
 block Blank = T.pack ""
 
 document :: Document -> T.Text
