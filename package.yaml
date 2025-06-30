@@ -1,10 +1,10 @@
-name:                subtext
+name:                subtextual
 version:             0.1.0.0
-github:              "githubuser/subtext"
+github:              "julianferrone/subtextual"
 license:             BSD-3-Clause
-author:              "Author name here"
+author:              "Julian Ferrone"
 maintainer:          "example@example.com"
-copyright:           "2025 Author name here"
+copyright:           "2025 Julian Ferrone"
 
 extra-source-files:
 - README.md
@@ -40,7 +40,7 @@ library:
   source-dirs: src
 
 executables:
-  subtext-exe:
+  subtextual-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -48,10 +48,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - subtext
+    - subtextual
 
 tests:
-  subtext-test:
+  subtextual-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:

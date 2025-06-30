@@ -4,14 +4,14 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 
-name:           subtext
+name:           subtextual
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/subtext#readme>
-homepage:       https://github.com/githubuser/subtext#readme
-bug-reports:    https://github.com/githubuser/subtext/issues
-author:         Author name here
+homepage:       https://github.com/julianferrone/subtextual#readme
+bug-reports:    https://github.com/julianferrone/subtextual/issues
+author:         Julian Ferrone
 maintainer:     example@example.com
-copyright:      2025 Author name here
+copyright:      2025 Julian Ferrone
 license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/subtext
+  location: https://github.com/julianferrone/subtextual
 
 library
   exposed-modules:
@@ -29,9 +29,9 @@ library
       Parser
       Subtext
   other-modules:
-      Paths_subtext
+      Paths_subtextual
   autogen-modules:
-      Paths_subtext
+      Paths_subtextual
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
@@ -42,12 +42,12 @@ library
     , text
   default-language: Haskell2010
 
-executable subtext-exe
+executable subtextual-exe
   main-is: Main.hs
   other-modules:
-      Paths_subtext
+      Paths_subtextual
   autogen-modules:
-      Paths_subtext
+      Paths_subtextual
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -55,18 +55,18 @@ executable subtext-exe
       attoparsec
     , base >=4.7 && <5
     , lucid
-    , subtext
+    , subtextual
     , text
   default-language: Haskell2010
 
-test-suite subtext-test
+test-suite subtextual-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
       ParserSpec
-      Paths_subtext
+      Paths_subtextual
   autogen-modules:
-      Paths_subtext
+      Paths_subtextual
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
