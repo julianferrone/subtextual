@@ -8,6 +8,7 @@ data Inline =
     PlainText T.Text
     | BareUrl T.Text
     | AngledUrl T.Text
+    | SlashLink T.Text
     deriving (Show, Eq)
 
 data Block = 
