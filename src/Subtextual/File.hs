@@ -1,11 +1,12 @@
 module Subtextual.File (readDocument) where
 
-import Subtextual.Core
-import qualified Subtextual.Parser as P
+import Data.Attoparsec.Text (parseOnly)
+import Subtextual.Core (Document)
 
 import qualified Data.Text.IO as I
+import qualified Subtextual.Parser as P
 import qualified System.FilePath as FP
-import Data.Attoparsec.Text (parseOnly)
+import qualified System.Directory as D
 
 ------------------------------------------------------------
 --                 Selecting Subtext Files                --
@@ -13,6 +14,12 @@ import Data.Attoparsec.Text (parseOnly)
 
 isSubtextFile :: FilePath -> Bool
 isSubtextFile = (".subtext" ==) . FP.takeExtension
+
+subtextFilesInDir :: FilePath -> IO [FilePath]
+subtextFilesInDir dir = do
+    children <- D.listDirectory dir
+    let subtextFiles = filter isSubtextFile children
+    return subtextFiles
 
 ------------------------------------------------------------
 --                  Reading Subtext Files                 --
@@ -24,3 +31,7 @@ readDocument fp = do
     let doc = parseOnly P.document file
     return doc
 
+readDocuments :: FilePath -> IO [Either String Document]
+readDocuments dir = do
+    subtextFiles <- subtextFilesInDir dir
+    mapM readDocument subtextFiles
