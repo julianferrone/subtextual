@@ -16,6 +16,9 @@ data Block =
     | Heading T.Text
     | Bullet [Inline]
     | Quote [Inline]
+    | Tag T.Text
+    | KeyValue T.Text T.Text
+    | Triple T.Text T.Text T.Text
     | Blank
     deriving (Show, Eq)
 
