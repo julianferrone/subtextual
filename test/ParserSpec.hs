@@ -59,6 +59,26 @@ spec = do
                 Parser.nonBlankBlock
                 (T.pack "/foo/bar") 
                 (Paragraph [SlashLink (T.pack "foo/bar")])
+        it "parses a tag" $ do
+            shouldMatch
+                Parser.nonBlankBlock
+                (T.pack "! Tag") 
+                (Tag (T.pack "Tag"))
+        it "parses a key value pair" $ do
+            shouldMatch
+                Parser.nonBlankBlock
+                (T.pack "! Key Value") 
+                (KeyValue (T.pack "Key") (T.pack "Value"))
+        it "parses a key value pair with spaces in the value" $ do
+            shouldMatch
+                Parser.nonBlankBlock
+                (T.pack "! Key Value 2") 
+                (KeyValue (T.pack "Key") (T.pack "Value 2"))
+        it "parses a subject object predicate" $ do
+            shouldMatch
+                Parser.nonBlankBlock
+                (T.pack "& Subject Predicate Object") 
+                (Triple (T.pack "Subject") (T.pack "Predicate") (T.pack "Object"))
     describe "document" $ do
         it "parses a whole document" $ do
             shouldMatch

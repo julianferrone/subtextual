@@ -125,11 +125,39 @@ bullet = Bullet <$> prefixed '-' inlines <?> "bullet"
 quote :: Parser Block
 quote = Quote <$> prefixed '>' inlines <?> "quote"
 
+tag :: Parser Block
+tag = Tag <$> prefixed '!' word <?> "tag"
+
+keyValue :: Parser Block
+keyValue = prefixed '!' inner <?> "keyValue"
+    where 
+        inner :: Parser Block
+        inner = do
+            key <- word
+            _ <- whitespace
+            value <- takeUntilEndOfLine
+            return $ KeyValue key value
+
+triple :: Parser Block
+triple = prefixed '&' inner <?> "triple"
+    where
+        inner :: Parser Block
+        inner = do
+            subject <- word
+            _ <- whitespace
+            predicate <- word
+            _ <- whitespace
+            object <- takeUntilEndOfLine
+            return $ Triple subject predicate object
+
 nonBlankBlock :: Parser Block
 nonBlankBlock = 
     heading
     <|> bullet
     <|> quote
+    <|> keyValue
+    <|> tag
+    <|> triple
     <|> paragraph
     <?> "nonBlankBlock"
 
