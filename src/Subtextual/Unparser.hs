@@ -13,12 +13,18 @@ inline (SlashLink sl) = T.pack "/" <> sl
 inlines :: [Inline] -> T.Text
 inlines = mconcat . map inline
 
+spaced :: [T.Text] -> T.Text
+spaced = T.intercalate $ T.pack " "
+
 block :: Block -> T.Text
 block (Paragraph p) = inlines p
 block (Heading h) = T.pack "# " <> h
 block (Bullet b) = T.pack "- " <> inlines b
 block (Quote q) = T.pack "> " <> inlines q
 block Blank = T.pack ""
+block (Tag tag) = T.pack "! " <> tag
+block (KeyValue key value) = spaced [T.pack "!", key, value]
+block (Triple subject predicate object) = spaced [T.pack "&", subject, predicate, object]
 
 document :: Document -> T.Text
 document = T.intercalate (T.pack "\n") . map block
