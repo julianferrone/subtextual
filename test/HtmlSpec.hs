@@ -41,6 +41,15 @@ spec = do
         it "renders a slashlink into HTML" $ do
             renderBlock (Paragraph [SlashLink (T.pack "test")])
                 `shouldBe` T.pack "<p><a href=\"test\" class=\"slashlink\">test</a></p>"
+        it "renders a tag into HTML" $ do
+            renderBlock (Tag (T.pack "Tag"))
+                `shouldBe` T.pack "<div class=\"tag\">Tag</div>"
+        it "renders a key value pair into HTML" $ do
+            renderBlock (KeyValue (T.pack "Key") (T.pack "Value"))
+                `shouldBe` T.pack "<div class=\"keyvalue\"><div class=\"key\">Key</div><div class=\"value\">Value</div></div>"
+        it "renders a triple into HTML" $ do
+            renderBlock (Triple (T.pack "Subject") (T.pack "Predicate") (T.pack "Object"))
+                `shouldBe` T.pack "<div class=\"triple\"><div class=\"subject\">Subject</div><div class=\"predicate\">Predicate</div><div class=\"object\">Object</div></div>"
     describe "document" $ do
         it "renders a document into HTML" $ do
             renderDoc [

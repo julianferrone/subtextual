@@ -28,7 +28,19 @@ block (Heading h) = (h2_ . toHtml) h
 block (Bullet b) = (li_ . inlines) b
 block (Quote q) = (blockquote_ . inlines) q
 block Blank = mempty
-
+block (Tag tag) = (div_ [class_ "tag"] . toHtml) tag
+block (KeyValue key value) = 
+    div_ 
+        [class_ "keyvalue"] 
+        ( div_ [class_ "key"] (toHtml key) 
+            <> div_ [class_ "value"] (toHtml value)
+        ) 
+block (Triple subject predicate object) = 
+    (div_ [class_ "triple"] . mconcat) [
+            div_ [class_ "subject"] (toHtml subject),
+            div_ [class_ "predicate"] (toHtml predicate),
+            div_ [class_ "object"] (toHtml object)
+        ]
 
 ------------------------------------------------------------
 --                    Document to HTML                    --
