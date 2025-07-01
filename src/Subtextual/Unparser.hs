@@ -17,10 +17,10 @@ spaced :: [T.Text] -> T.Text
 spaced = T.intercalate $ T.pack " "
 
 block :: Block -> T.Text
-block (Paragraph p) = inlines p
-block (Heading h) = T.pack "# " <> h
-block (Bullet b) = T.pack "- " <> inlines b
-block (Quote q) = T.pack "> " <> inlines q
+block (Paragraph paragraph) = inlines paragraph
+block (Heading heading) = T.pack "# " <> heading
+block (Bullet bullet) = T.pack "- " <> inlines bullet
+block (Quote quote) = T.pack "> " <> inlines quote
 block Blank = T.pack ""
 block (Tag tag) = T.pack "! " <> tag
 block (KeyValue key value) = spaced [T.pack "!", key, value]
