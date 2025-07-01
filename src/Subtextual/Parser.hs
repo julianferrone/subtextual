@@ -109,7 +109,7 @@ prefixed :: Char -> Parser a -> Parser a
 prefixed c parser = char c *> skipSpace *> parser
 
 takeUntilEndOfLine :: Parser T.Text
-takeUntilEndOfLine = takeWhile1 $ not . isEndOfLine  <?> "takeUntilEndOfLine"
+takeUntilEndOfLine = takeWhile1 (not . isEndOfLine) <?> "takeUntilEndOfLine"
 
 ----------            Non-Blank Blocks            ----------
 
