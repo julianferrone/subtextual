@@ -25,6 +25,7 @@ dependencies:
 - lucid
 - text
 - filepath
+- directory
 
 ghc-options:
 - -Wall
