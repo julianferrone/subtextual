@@ -1,10 +1,16 @@
-module Subtextual.File (readDocument) where
+module Subtextual.File (
+    readDocument, 
+    readDocuments, 
+    writeDocument, 
+    writeDocuments
+) where
 
 import Data.Attoparsec.Text (parseOnly)
 import Subtextual.Core (Document)
 
 import qualified Data.Text.IO as I
 import qualified Subtextual.Parser as P
+import qualified Subtextual.Unparser as U
 import qualified System.FilePath as FP
 import qualified System.Directory as D
 
@@ -35,3 +41,16 @@ readDocuments :: FilePath -> IO [Either String Document]
 readDocuments dir = do
     subtextFiles <- subtextFilesInDir dir
     mapM readDocument subtextFiles
+
+------------------------------------------------------------
+--                  Writing Subtext Files                 --
+------------------------------------------------------------
+
+writeDocument :: FilePath -> Document -> IO ()
+writeDocument fp doc = I.writeFile fp (U.document doc)
+
+writeDocuments :: FilePath -> [(String, Document)] -> IO ()
+writeDocuments dir namedDocs = mapM_ (uncurry writeDocument) (qualifyPaths dir namedDocs)
+    where
+        qualifyPaths :: FilePath -> [(String, Document)] -> [(FilePath, Document)]
+        qualifyPaths fp namedDocs = [(dir FP.</> name, doc) | (name, doc) <- namedDocs]
