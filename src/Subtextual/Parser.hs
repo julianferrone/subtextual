@@ -48,8 +48,8 @@ bareUrl = do
 
         punctuationBoundary :: Parser ()
         punctuationBoundary = do
-            char '.' <|> char ';' <|> char ','
-            skip isSpace <|> endOfLine
+            _ <- char '.' <|> char ';' <|> char ','
+            _ <- skip isSpace <|> endOfLine
             return ()
 
 isAngledUrlChar :: Char -> Bool
@@ -57,9 +57,9 @@ isAngledUrlChar c = not $ c == '<' || c == '>' || isSpace c
 
 angledUrl :: Parser Inline
 angledUrl = do
-    string' "<"
+    _ <- string' "<"
     url <- takeWhile1 isAngledUrlChar
-    string' ">"
+    _ <- string' ">"
     return $ AngledUrl url
     <?> "angledUrl"
 
@@ -73,7 +73,7 @@ isSlashLinkChar c =
 
 slashLink :: Parser Inline
 slashLink = do
-    char '/'
+    _ <- char '/'
     link <- takeWhile1 isSlashLinkChar
     return $ SlashLink link
     <?> "slashLink"
