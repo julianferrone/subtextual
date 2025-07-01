@@ -24,6 +24,7 @@ dependencies:
 - attoparsec
 - lucid
 - text
+- filepath
 
 ghc-options:
 - -Wall
