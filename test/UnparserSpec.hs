@@ -48,6 +48,15 @@ spec = do
                 `shouldBe` T.pack "> Here's a quote"
         it "unparses a blank line" $ do
             Unparser.block Blank `shouldBe` T.pack ""
+        it "unparses a tag" $ do
+            Unparser.block (Tag (T.pack "Tag"))
+                `shouldBe` T.pack "! Tag"
+        it "unparses a key-value pair" $ do
+            Unparser.block (KeyValue (T.pack "Key") (T.pack "Value"))
+                `shouldBe` T.pack "! Key Value"
+        it "unparses a triple" $ do
+            Unparser.block (Triple (T.pack "Subject") (T.pack "Predicate") (T.pack "Object"))
+                `shouldBe` T.pack "& Subject Predicate Object"
     describe "document" $ do
         it "unparses a document" $ do
             Unparser.document [
