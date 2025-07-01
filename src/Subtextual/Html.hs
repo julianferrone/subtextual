@@ -23,10 +23,10 @@ inlines = mconcat . map inline
 ------------------------------------------------------------
 
 block :: Block -> Html ()
-block (Paragraph p) = (p_ . inlines) p
-block (Heading h) = (h2_ . toHtml) h
-block (Bullet b) = (li_ . inlines) b
-block (Quote q) = (blockquote_ . inlines) q
+block (Paragraph paragraph) = (p_ . inlines) paragraph
+block (Heading heading) = (h2_ . toHtml) heading
+block (Bullet bullet) = (li_ . inlines) bullet
+block (Quote quote) = (blockquote_ . inlines) quote
 block Blank = mempty
 block (Tag tag) = (div_ [class_ "tag"] . toHtml) tag
 block (KeyValue key value) = 
