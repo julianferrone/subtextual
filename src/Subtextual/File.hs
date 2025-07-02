@@ -48,8 +48,28 @@ readDocuments dir = do
 --                  Writing Subtext Files                 --
 ------------------------------------------------------------
 
-write' :: (Document -> T.Text) -> FilePath -> Document -> IO ()
+write' :: 
+    (Document -> T.Text)  -- Render the Document as Text
+    -> FilePath           -- Filepath to write the Document to
+    -> Document           -- The Document
+    -> IO ()              -- Writing the file
 write' f fp doc = I.writeFile fp $ f doc
+
+qualifyPaths :: 
+    FilePath                  -- The parent directory
+    -> [(String, Document)]   -- The named documents
+    -> [(FilePath, Document)] -- The filepaths for the documents
+qualifyPaths parentDir namedDocs = [(parentDir FP.</> name, doc) | (name, doc) <- namedDocs]
+
+writes' :: 
+    (FilePath -> Document -> IO ()) -- Write a Document to a filepath
+    -> FilePath                     -- Filepath of the parent directory
+    -> [(String, Document)]         -- The list of named Documents
+    -> IO ()                        -- Writing the file
+writes' writeF parentDir namedDocs = 
+    mapM_ 
+    (uncurry writeF) 
+    (qualifyPaths parentDir namedDocs)
 
 ----------                 Subtext                ----------
 
@@ -57,10 +77,7 @@ writeDocument :: FilePath -> Document -> IO ()
 writeDocument = write' U.document
 
 writeDocuments :: FilePath -> [(String, Document)] -> IO ()
-writeDocuments dir namedDocs = mapM_ (uncurry writeDocument) (qualifyPaths dir namedDocs)
-    where
-        qualifyPaths :: FilePath -> [(String, Document)] -> [(FilePath, Document)]
-        qualifyPaths fp namedDocs = [(dir FP.</> name, doc) | (name, doc) <- namedDocs]
+writeDocuments = writes' writeDocument
 
 ----------                  HTML                  ----------
 
@@ -68,7 +85,4 @@ writeDocumentHtml :: FilePath -> Document -> IO ()
 writeDocumentHtml = write' H.renderDoc
 
 writeDocumentsHtml :: FilePath -> [(String, Document)] -> IO ()
-writeDocumentsHtml dir namedDocs = mapM_ (uncurry writeDocumentHtml) (qualifyPaths dir namedDocs)
-    where
-        qualifyPaths :: FilePath -> [(String, Document)] -> [(FilePath, Document)]
-        qualifyPaths fp namedDocs = [(dir FP.</> name, doc) | (name, doc) <- namedDocs]
+writeDocumentsHtml = writes' writeDocumentHtml
