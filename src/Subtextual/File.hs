@@ -2,7 +2,8 @@ module Subtextual.File (
     readSubtext, 
     readSubtexts, 
     writeSubtext, 
-    writeSubtexts
+    writeSubtexts,
+    transcribeSubtextToHtml
 ) where
 
 import Data.Attoparsec.Text (parseOnly)
@@ -60,11 +61,17 @@ write' ::
     -> IO ()              -- Writing the file
 write' f fp doc = I.writeFile fp $ f doc
 
+qualifyPath ::
+    FilePath
+    -> (String, Document)
+    -> (FilePath, Document)
+qualifyPath parentDir (name, doc) = (parentDir FP.</> name, doc)
+
 qualifyPaths :: 
     FilePath                  -- The parent directory
     -> [(String, Document)]   -- The named documents
     -> [(FilePath, Document)] -- The filepaths for the documents
-qualifyPaths parentDir namedDocs = [(parentDir FP.</> name, doc) | (name, doc) <- namedDocs]
+qualifyPaths parentDir = map (qualifyPath parentDir)
 
 writes' :: 
     (FilePath -> Document -> IO ()) -- Write a Document to a filepath
