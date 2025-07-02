@@ -1,9 +1,11 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Subtextual.Html (block, document) where
+module Subtextual.Html (renderBlock, renderDoc) where
 
 import Subtextual.Core
 import Lucid
+import qualified Data.Text as T
+import Data.Text.Lazy (toStrict)
 
 ------------------------------------------------------------
 --                     Inlines to HTML                    --
@@ -68,3 +70,11 @@ document = mconcat . map groupHtml . group' where
     reverseGroup :: Group a -> Group a
     reverseGroup (Single s) = Single s
     reverseGroup (Bullets bs) = Bullets $ reverse bs
+
+----------     Subtext to HTML-formatted Text     ----------
+
+renderBlock :: Block -> T.Text
+renderBlock = toStrict . renderText . block
+
+renderDoc :: Document -> T.Text
+renderDoc = toStrict . renderText . document

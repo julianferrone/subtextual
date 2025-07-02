@@ -4,25 +4,18 @@ import Subtextual.Core
 import qualified Subtextual.Html as Html
 
 import qualified Data.Text as T
-import Data.Text.Lazy (toStrict)
 import Lucid
 
 import Test.Hspec
-
-renderBlock :: Block -> T.Text
-renderBlock = toStrict . renderText . Html.block
-
-renderDoc :: Document -> T.Text
-renderDoc = toStrict . renderText . Html.document
 
 spec :: Spec
 spec = do
     describe "block" $ do
         it "renders a plaintext paragraph into HTML" $ do
-            renderBlock (Paragraph [PlainText (T.pack "Hello, world!")]) 
+            Html.renderBlock (Paragraph [PlainText (T.pack "Hello, world!")]) 
                 `shouldBe` T.pack "<p><span>Hello, world!</span></p>"
         it "renders a complex paragraph into HTML" $ do
-            renderBlock (Paragraph 
+            Html.renderBlock (Paragraph 
                 [PlainText (T.pack "Hello, ")
                 , BareUrl (T.pack "https://google.com")
                 , PlainText (T.pack " and ")
@@ -30,29 +23,29 @@ spec = do
                 ]) 
                 `shouldBe` T.pack "<p><span>Hello, </span><a href=\"https://google.com\">https://google.com</a><span> and </span><a href=\"doi:10.1000/100\">doi:10.1000/100</a></p>"
         it "renders a heading into HTML" $ do
-            renderBlock (Heading (T.pack "Test"))
+            Html.renderBlock (Heading (T.pack "Test"))
                 `shouldBe` T.pack "<h2>Test</h2>"
         it "renders a bullet into HTML" $ do
-            renderBlock (Bullet [PlainText (T.pack "Test")])
+            Html.renderBlock (Bullet [PlainText (T.pack "Test")])
                 `shouldBe` T.pack "<li><span>Test</span></li>"
         it "renders a quote into HTML" $ do
-            renderBlock (Quote [PlainText (T.pack "Test")])
+            Html.renderBlock (Quote [PlainText (T.pack "Test")])
                 `shouldBe` T.pack "<blockquote><span>Test</span></blockquote>"
         it "renders a slashlink into HTML" $ do
-            renderBlock (Paragraph [SlashLink (T.pack "test")])
+            Html.renderBlock (Paragraph [SlashLink (T.pack "test")])
                 `shouldBe` T.pack "<p><a href=\"test\" class=\"slashlink\">test</a></p>"
         it "renders a tag into HTML" $ do
-            renderBlock (Tag (T.pack "Tag"))
+            Html.renderBlock (Tag (T.pack "Tag"))
                 `shouldBe` T.pack "<div class=\"tag\">Tag</div>"
         it "renders a key value pair into HTML" $ do
-            renderBlock (KeyValue (T.pack "Key") (T.pack "Value"))
+            Html.renderBlock (KeyValue (T.pack "Key") (T.pack "Value"))
                 `shouldBe` T.pack "<div class=\"keyvalue\"><div class=\"key\">Key</div><div class=\"value\">Value</div></div>"
         it "renders a triple into HTML" $ do
-            renderBlock (Triple (T.pack "Subject") (T.pack "Predicate") (T.pack "Object"))
+            Html.renderBlock (Triple (T.pack "Subject") (T.pack "Predicate") (T.pack "Object"))
                 `shouldBe` T.pack "<div class=\"triple\"><div class=\"subject\">Subject</div><div class=\"predicate\">Predicate</div><div class=\"object\">Object</div></div>"
     describe "document" $ do
         it "renders a document into HTML" $ do
-            renderDoc [
+            Html.renderDoc [
                     Heading (T.pack "Overview"),
                     Blank,
                     Paragraph [PlainText (T.pack "Evolution is a behavior that emerges in any system with:")],
