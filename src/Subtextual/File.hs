@@ -4,7 +4,8 @@ module Subtextual.File (
     readSubtexts, 
     writeSubtext, 
     writeSubtexts,
-    transcribeSubtextToHtml
+    transcribeSubtextToHtml,
+    transcribeSubtextDirToHtml
 ) where
 
 import Data.Attoparsec.Text (parseOnly)
