@@ -6,6 +6,7 @@ module Subtextual.File (
 ) where
 
 import Data.Attoparsec.Text (parseOnly)
+import Data.Either (rights)
 import Subtextual.Core (Document)
 
 import qualified Data.Text as T
@@ -95,11 +96,16 @@ writeHtmls = writes' writeHtml
 --                 Piping Subtext to HTML                 --
 ------------------------------------------------------------
 
-readSubtextWriteHtml :: FilePath -> FilePath -> IO (Either String ())
-readSubtextWriteHtml src dst = do
+transcribeSubtextToHtml :: FilePath -> FilePath -> IO (Either String ())
+transcribeSubtextToHtml src dst = do
     subtext <- readSubtext src
     case subtext of
         Left err -> return (Left err)
         Right (_, doc) -> do
             _ <- writeHtml dst doc
             return (Right ())
+
+transcribeSubtextDirToHtml :: FilePath -> FilePath -> IO ()
+transcribeSubtextDirToHtml srcDir dstDir = do
+    subtexts <- readSubtexts srcDir
+    writeHtmls dstDir $ rights subtexts
