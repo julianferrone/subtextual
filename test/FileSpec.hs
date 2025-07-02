@@ -14,7 +14,7 @@ spec :: Spec
 spec = do
     around (withSystemTempDirectory "tmp") $ do
         describe "end to end" $ do
-            it "successfully parses and unparses a file" $ \dir -> do
+            it "successfully writes a Document to a file and reads the same Document from the file" $ \dir -> do
                 let doc = [
                         Heading (T.pack "Overview"),
                         Blank,
