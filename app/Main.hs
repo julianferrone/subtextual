@@ -98,7 +98,7 @@ main = do
         $ A.info 
         (options A.<**> A.helper) 
         (A.fullDesc
-        <> A.progDesc "Test program description"
-        <> A.header "Test header"
+        <> A.progDesc "A command-line tool for working with Subtext, the text-based line-oriented hypertext format designed for note-taking."
+        <> A.header "Subtextual CLI"
         )
     runOptions opts
