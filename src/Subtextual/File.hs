@@ -8,7 +8,7 @@ module Subtextual.File (
 import Data.Attoparsec.Text (parseOnly)
 import Subtextual.Core (Document)
 
-import qualified Data.Text.IO as I
+import qualified Data.Text.IO.Utf8 as I
 import qualified Subtextual.Parser as P
 import qualified Subtextual.Unparser as U
 import qualified System.FilePath as FP
