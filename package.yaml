@@ -51,6 +51,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - subtextual
+    - optparse-applicative
 
 tests:
   subtextual-test:
