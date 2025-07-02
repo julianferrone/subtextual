@@ -55,19 +55,23 @@ options = Options <$> A.hsubparser
 
 ----------                Executing               ----------
 
+------ Executing Command
+
 printConversionMessage :: String -> String -> Either String () -> IO ()
 printConversionMessage src dst (Left err) = do
-    putStrLn $ "Converting Subtext '" 
+    putStrLn $ "Converting Subtext " 
         <> src 
-        <> "' to HTML '" 
+        <> " to HTML " 
         <> dst
-        <> "' failed: "
+        <> " failed: "
         <> err
     return ()
 printConversionMessage src dst (Right res) = do
     putStrLn $ "Converting Subtext " 
         <> src 
-        <> "to HTML succeeded."
+        <> " to HTML "
+        <> dst
+        <> " succeeded."
     return ()
 
 runCommand :: Command -> IO ()
@@ -78,6 +82,11 @@ runCommand (ConvertFileToHtml src dst) = do
 runCommand (ConvertDirectoryToHtml srcDir dstDir) = do
     result <- F.transcribeSubtextDirToHtml srcDir dstDir
     mapM_ (printConversionMessage srcDir dstDir) result
+
+------ Executing Options
+
+runOptions :: Options -> IO ()
+runOptions = runCommand . optCommand
 
 ------------------------------------------------------------
 --                        Main CLI                        --
@@ -92,4 +101,4 @@ main = do
         <> A.progDesc "Test program description"
         <> A.header "Test header"
         )
-    print opts
+    runOptions opts
