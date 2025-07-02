@@ -53,6 +53,32 @@ options = Options <$> A.hsubparser
     <> A.command "dir" (A.info convertDirectoryToHtml (A.progDesc "Render a directory of Subtext files into HTML.") )
     )
 
+----------                Executing               ----------
+
+printConversionMessage :: String -> String -> Either String () -> IO ()
+printConversionMessage src dst (Left err) = do
+    putStrLn $ "Converting Subtext '" 
+        <> src 
+        <> "' to HTML '" 
+        <> dst
+        <> "' failed: "
+        <> err
+    return ()
+printConversionMessage src dst (Right res) = do
+    putStrLn $ "Converting Subtext " 
+        <> src 
+        <> "to HTML succeeded."
+    return ()
+
+runCommand :: Command -> IO ()
+runCommand (ConvertFileToHtml src dst) = do
+    result <- F.transcribeSubtextToHtml src dst
+    printConversionMessage src dst result
+        
+runCommand (ConvertDirectoryToHtml srcDir dstDir) = do
+    result <- F.transcribeSubtextDirToHtml srcDir dstDir
+    mapM_ (printConversionMessage srcDir dstDir) result
+
 ------------------------------------------------------------
 --                        Main CLI                        --
 ------------------------------------------------------------
