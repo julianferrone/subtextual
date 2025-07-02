@@ -52,4 +52,4 @@ spec = do
                 let filepath = dir FP.</> "document.subtext"
                 _ <- File.writeSubtext filepath doc
                 read <- File.readSubtext filepath
-                read `shouldBe` Right doc
+                read `shouldBe` Right ("document", doc)

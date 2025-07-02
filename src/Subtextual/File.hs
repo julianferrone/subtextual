@@ -33,13 +33,17 @@ subtextFilesInDir dir = do
 --                  Reading Subtext Files                 --
 ------------------------------------------------------------
 
-readSubtext :: FilePath -> IO (Either String Document)
+readSubtext :: FilePath -> IO (Either String (String, Document))
 readSubtext fp = do 
     file <- I.readFile fp
-    let doc = parseOnly P.document file
-    return doc
+    let result = parseOnly P.document file
+    case result of
+        Left err -> return $ Left err
+        Right doc' -> do
+            let docName = FP.takeBaseName fp
+            return $ Right (docName, doc')
 
-readSubtexts :: FilePath -> IO [Either String Document]
+readSubtexts :: FilePath -> IO [Either String (String, Document)]
 readSubtexts dir = do
     subtextFiles <- subtextFilesInDir dir
     mapM readSubtext subtextFiles
