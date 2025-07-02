@@ -26,8 +26,6 @@ dependencies:
 - text
 - filepath
 - directory
-- containers
-- transformers
 
 ghc-options:
 - -Wall
@@ -65,3 +63,4 @@ tests:
     dependencies:
     - subtextual
     - hspec
+    - temporary

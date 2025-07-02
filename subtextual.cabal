@@ -40,12 +40,10 @@ library
   build-depends:
       attoparsec
     , base >=4.7 && <5
-    , containers
     , directory
     , filepath
     , lucid
     , text
-    , transformers
   default-language: Haskell2010
 
 executable subtextual-exe
@@ -60,19 +58,18 @@ executable subtextual-exe
   build-depends:
       attoparsec
     , base >=4.7 && <5
-    , containers
     , directory
     , filepath
     , lucid
     , subtextual
     , text
-    , transformers
   default-language: Haskell2010
 
 test-suite subtextual-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      FileSpec
       HtmlSpec
       ParserSpec
       UnparserSpec
@@ -85,12 +82,11 @@ test-suite subtextual-test
   build-depends:
       attoparsec
     , base >=4.7 && <5
-    , containers
     , directory
     , filepath
     , hspec
     , lucid
     , subtextual
+    , temporary
     , text
-    , transformers
   default-language: Haskell2010
