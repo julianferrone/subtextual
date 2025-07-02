@@ -26,6 +26,7 @@ dependencies:
 - text
 - filepath
 - directory
+- string-interpolate
 
 ghc-options:
 - -Wall

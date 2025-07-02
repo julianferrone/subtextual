@@ -43,6 +43,7 @@ library
     , directory
     , filepath
     , lucid
+    , string-interpolate
     , text
   default-language: Haskell2010
 
@@ -62,6 +63,7 @@ executable subtextual-exe
     , filepath
     , lucid
     , optparse-applicative
+    , string-interpolate
     , subtextual
     , text
   default-language: Haskell2010
@@ -87,6 +89,7 @@ test-suite subtextual-test
     , filepath
     , hspec
     , lucid
+    , string-interpolate
     , subtextual
     , temporary
     , text
