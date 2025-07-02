@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module Subtextual.File (
     readSubtext, 
     readSubtexts, 
@@ -112,7 +113,15 @@ transcribeSubtextToHtml src dst = do
             _ <- writeHtml dst doc
             return (Right ())
 
-transcribeSubtextDirToHtml :: FilePath -> FilePath -> IO ()
+transcribeSubtextDirToHtml :: FilePath -> FilePath -> IO [Either String ()]
 transcribeSubtextDirToHtml srcDir dstDir = do
     subtexts <- readSubtexts srcDir
-    writeHtmls dstDir $ rights subtexts
+    let qualifyRightPath = fmap $ qualifyPath dstDir
+    let namedDocs = qualifyRightPath <$> subtexts
+    mapM (
+        \case
+            Left err -> return (Left err)
+            Right (dst, doc) -> do
+                _ <- writeHtml dst doc
+                return (Right ())
+        ) namedDocs
