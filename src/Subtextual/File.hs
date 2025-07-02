@@ -90,3 +90,16 @@ writeHtml = write' H.renderDoc
 
 writeHtmls :: FilePath -> [(String, Document)] -> IO ()
 writeHtmls = writes' writeHtml
+
+------------------------------------------------------------
+--                 Piping Subtext to HTML                 --
+------------------------------------------------------------
+
+readSubtextWriteHtml :: FilePath -> FilePath -> IO (Either String ())
+readSubtextWriteHtml src dst = do
+    subtext <- readSubtext src
+    case subtext of
+        Left err -> return (Left err)
+        Right (_, doc) -> do
+            _ <- writeHtml dst doc
+            return (Right ())
