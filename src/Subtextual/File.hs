@@ -1,8 +1,8 @@
 module Subtextual.File (
-    readDocument, 
-    readDocuments, 
-    writeDocument, 
-    writeDocuments
+    readSubtext, 
+    readSubtexts, 
+    writeSubtext, 
+    writeSubtexts
 ) where
 
 import Data.Attoparsec.Text (parseOnly)
@@ -33,16 +33,16 @@ subtextFilesInDir dir = do
 --                  Reading Subtext Files                 --
 ------------------------------------------------------------
 
-readDocument :: FilePath -> IO (Either String Document)
-readDocument fp = do 
+readSubtext :: FilePath -> IO (Either String Document)
+readSubtext fp = do 
     file <- I.readFile fp
     let doc = parseOnly P.document file
     return doc
 
-readDocuments :: FilePath -> IO [Either String Document]
-readDocuments dir = do
+readSubtexts :: FilePath -> IO [Either String Document]
+readSubtexts dir = do
     subtextFiles <- subtextFilesInDir dir
-    mapM readDocument subtextFiles
+    mapM readSubtext subtextFiles
 
 ------------------------------------------------------------
 --                  Writing Subtext Files                 --
@@ -73,16 +73,16 @@ writes' writeF parentDir namedDocs =
 
 ----------                 Subtext                ----------
 
-writeDocument :: FilePath -> Document -> IO ()
-writeDocument = write' U.document
+writeSubtext :: FilePath -> Document -> IO ()
+writeSubtext = write' U.document
 
-writeDocuments :: FilePath -> [(String, Document)] -> IO ()
-writeDocuments = writes' writeDocument
+writeSubtexts :: FilePath -> [(String, Document)] -> IO ()
+writeSubtexts = writes' writeSubtext
 
 ----------                  HTML                  ----------
 
-writeDocumentHtml :: FilePath -> Document -> IO ()
-writeDocumentHtml = write' H.renderDoc
+writeHtml :: FilePath -> Document -> IO ()
+writeHtml = write' H.renderDoc
 
-writeDocumentsHtml :: FilePath -> [(String, Document)] -> IO ()
-writeDocumentsHtml = writes' writeDocumentHtml
+writeHtmls :: FilePath -> [(String, Document)] -> IO ()
+writeHtmls = writes' writeHtml

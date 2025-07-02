@@ -50,6 +50,6 @@ spec = do
                         Paragraph [BareUrl (T.pack "https://en.wikipedia.org/wiki/Evolutionary_systems")]
                         ]
                 let filepath = dir FP.</> "document.subtext"
-                _ <- File.writeDocument filepath doc
-                read <- File.readDocument filepath
+                _ <- File.writeSubtext filepath doc
+                read <- File.readSubtext filepath
                 read `shouldBe` Right doc
