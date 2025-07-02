@@ -8,6 +8,7 @@ module Subtextual.File (
 import Data.Attoparsec.Text (parseOnly)
 import Subtextual.Core (Document)
 
+import qualified Data.Text as T
 import qualified Data.Text.IO.Utf8 as I
 import qualified Subtextual.Html as H
 import qualified Subtextual.Parser as P
@@ -47,10 +48,13 @@ readDocuments dir = do
 --                  Writing Subtext Files                 --
 ------------------------------------------------------------
 
+write' :: (Document -> T.Text) -> FilePath -> Document -> IO ()
+write' f fp doc = I.writeFile fp $ f doc
+
 ----------                 Subtext                ----------
 
 writeDocument :: FilePath -> Document -> IO ()
-writeDocument fp doc = I.writeFile fp (U.document doc)
+writeDocument = write' U.document
 
 writeDocuments :: FilePath -> [(String, Document)] -> IO ()
 writeDocuments dir namedDocs = mapM_ (uncurry writeDocument) (qualifyPaths dir namedDocs)
@@ -61,7 +65,7 @@ writeDocuments dir namedDocs = mapM_ (uncurry writeDocument) (qualifyPaths dir n
 ----------                  HTML                  ----------
 
 writeDocumentHtml :: FilePath -> Document -> IO ()
-writeDocumentHtml fp doc = I.writeFile fp (H.renderDoc doc)
+writeDocumentHtml = write' H.renderDoc
 
 writeDocumentsHtml :: FilePath -> [(String, Document)] -> IO ()
 writeDocumentsHtml dir namedDocs = mapM_ (uncurry writeDocumentHtml) (qualifyPaths dir namedDocs)
