@@ -9,6 +9,7 @@ import Data.Attoparsec.Text (parseOnly)
 import Subtextual.Core (Document)
 
 import qualified Data.Text.IO.Utf8 as I
+import qualified Subtextual.Html as H
 import qualified Subtextual.Parser as P
 import qualified Subtextual.Unparser as U
 import qualified System.FilePath as FP
@@ -46,11 +47,24 @@ readDocuments dir = do
 --                  Writing Subtext Files                 --
 ------------------------------------------------------------
 
+----------                 Subtext                ----------
+
 writeDocument :: FilePath -> Document -> IO ()
 writeDocument fp doc = I.writeFile fp (U.document doc)
 
 writeDocuments :: FilePath -> [(String, Document)] -> IO ()
 writeDocuments dir namedDocs = mapM_ (uncurry writeDocument) (qualifyPaths dir namedDocs)
+    where
+        qualifyPaths :: FilePath -> [(String, Document)] -> [(FilePath, Document)]
+        qualifyPaths fp namedDocs = [(dir FP.</> name, doc) | (name, doc) <- namedDocs]
+
+----------                  HTML                  ----------
+
+writeDocumentHtml :: FilePath -> Document -> IO ()
+writeDocumentHtml fp doc = I.writeFile fp (H.renderDoc doc)
+
+writeDocumentsHtml :: FilePath -> [(String, Document)] -> IO ()
+writeDocumentsHtml dir namedDocs = mapM_ (uncurry writeDocumentHtml) (qualifyPaths dir namedDocs)
     where
         qualifyPaths :: FilePath -> [(String, Document)] -> [(FilePath, Document)]
         qualifyPaths fp namedDocs = [(dir FP.</> name, doc) | (name, doc) <- namedDocs]
