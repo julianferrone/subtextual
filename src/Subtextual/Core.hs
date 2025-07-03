@@ -1,5 +1,5 @@
 module Subtextual.Core
-    ( Inline(..), Block(..), Document
+    ( Inline(..), AuthoredBlock(..), AuthoredDocument
     ) where
 
 import qualified Data.Text as T
@@ -19,23 +19,23 @@ data TransclusionOptions =
     deriving (Show, Eq)
 
 {-
-TODO: Specialise the `Block` type into `AuthoredBlock` and add a `ViewerBlock`
+TODO: Specialise the `AuthoredBlock` type into `AuthoredBlock` and add a `ViewerBlock`
 which represents the block after we fill out the transclusions in the document
 from the corpus.
 
-TODO: Add a `Corpus` type to represent a collection of `Document`s.
+TODO: Add a `Corpus` type to represent a collection of `AuthoredDocument`s.
 -}
 
-data Block = 
-    Paragraph [Inline]
-    | Heading T.Text
-    | Bullet [Inline]
-    | Quote [Inline]
-    | Tag T.Text
-    | KeyValue T.Text T.Text
-    | Triple T.Text T.Text T.Text
-    | Transclusion TransclusionOptions
-    | Blank
+data AuthoredBlock = 
+    AParagraph [Inline]
+    | AHeading T.Text
+    | ABullet [Inline]
+    | AQuote [Inline]
+    | ATag T.Text
+    | AKeyValue T.Text T.Text
+    | ATriple T.Text T.Text T.Text
+    | ATransclusion TransclusionOptions
+    | ABlank
     deriving (Show, Eq)
 
-type Document = [Block]
+type AuthoredDocument = [AuthoredBlock]

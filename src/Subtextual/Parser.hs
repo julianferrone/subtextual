@@ -1,5 +1,5 @@
 module Subtextual.Parser
-    (nonBlankBlock, document) where
+    (nonABlankABlock, document) where
 
 import Control.Applicative
 import Control.Monad
@@ -100,7 +100,7 @@ inlines = do
         smoosh (i : todo) done = smoosh todo (i : done)
 
 ------------------------------------------------------------
---                      Block Parsing                     --
+--                      AuthoredBlock Parsing                     --
 ------------------------------------------------------------
 
 ----------                 Helpers                ----------
@@ -111,47 +111,47 @@ prefixed c parser = char c *> skipSpace *> parser
 takeUntilEndOfLine :: Parser T.Text
 takeUntilEndOfLine = takeWhile1 (not . isEndOfLine) <?> "takeUntilEndOfLine"
 
-----------            Non-Blank Blocks            ----------
+----------            Non-ABlank ABlocks            ----------
 
-paragraph :: Parser Block
-paragraph = Paragraph <$> inlines <?> "paragraph"
+paragraph :: Parser AuthoredBlock
+paragraph = AParagraph <$> inlines <?> "paragraph"
 
-heading :: Parser Block
-heading = Heading <$> prefixed '#' takeUntilEndOfLine <?> "heading"
+heading :: Parser AuthoredBlock
+heading = AHeading <$> prefixed '#' takeUntilEndOfLine <?> "heading"
 
-bullet :: Parser Block
-bullet = Bullet <$> prefixed '-' inlines <?> "bullet"
+bullet :: Parser AuthoredBlock
+bullet = ABullet <$> prefixed '-' inlines <?> "bullet"
 
-quote :: Parser Block
-quote = Quote <$> prefixed '>' inlines <?> "quote"
+quote :: Parser AuthoredBlock
+quote = AQuote <$> prefixed '>' inlines <?> "quote"
 
-tag :: Parser Block
-tag = Tag <$> prefixed '!' word <?> "tag"
+tag :: Parser AuthoredBlock
+tag = ATag <$> prefixed '!' word <?> "tag"
 
-keyValue :: Parser Block
+keyValue :: Parser AuthoredBlock
 keyValue = prefixed '!' inner <?> "keyValue"
     where 
-        inner :: Parser Block
+        inner :: Parser AuthoredBlock
         inner = do
             key <- word
             _ <- whitespace
             value <- takeUntilEndOfLine
-            return $ KeyValue key value
+            return $ AKeyValue key value
 
-triple :: Parser Block
+triple :: Parser AuthoredBlock
 triple = prefixed '&' inner <?> "triple"
     where
-        inner :: Parser Block
+        inner :: Parser AuthoredBlock
         inner = do
             subject <- word
             _ <- whitespace
             predicate <- word
             _ <- whitespace
             object <- takeUntilEndOfLine
-            return $ Triple subject predicate object
+            return $ ATriple subject predicate object
 
-nonBlankBlock :: Parser Block
-nonBlankBlock = 
+nonABlankABlock :: Parser AuthoredBlock
+nonABlankABlock = 
     heading
     <|> bullet
     <|> quote
@@ -159,23 +159,23 @@ nonBlankBlock =
     <|> tag
     <|> triple
     <|> paragraph
-    <?> "nonBlankBlock"
+    <?> "nonABlankABlock"
 
-nonBlankBlocks :: Parser Document
-nonBlankBlocks = many1 nonBlankBlock <?> "nonBlankBlocks"
+nonABlankABlocks :: Parser AuthoredDocument
+nonABlankABlocks = many1 nonABlankABlock <?> "nonABlankABlocks"
 
-----------              Blank Blocks              ----------
+----------              ABlank ABlocks              ----------
 
-newLines :: Parser Document
+newLines :: Parser AuthoredDocument
 newLines = do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
     let len = length eols
-    return $ replicate (len - 1) Blank
+    return $ replicate (len - 1) ABlank
     <?> "newLines"
 
 ------------------------------------------------------------
---                    Document Parsing                    --
+--                    AuthoredDocument Parsing                    --
 ------------------------------------------------------------
 
-document :: Parser Document
-document = concat <$> many1 (nonBlankBlocks <|> newLines) <?> "document"
+document :: Parser AuthoredDocument
+document = concat <$> many1 (nonABlankABlocks <|> newLines) <?> "document"

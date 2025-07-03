@@ -16,15 +16,15 @@ inlines = mconcat . map inline
 spaced :: [T.Text] -> T.Text
 spaced = T.intercalate $ T.pack " "
 
-block :: Block -> T.Text
-block (Paragraph paragraph) = inlines paragraph
-block (Heading heading) = T.pack "# " <> heading
-block (Bullet bullet) = T.pack "- " <> inlines bullet
-block (Quote quote) = T.pack "> " <> inlines quote
-block Blank = T.pack ""
-block (Tag tag) = T.pack "! " <> tag
-block (KeyValue key value) = spaced [T.pack "!", key, value]
-block (Triple subject predicate object) = spaced [T.pack "&", subject, predicate, object]
+block :: AuthoredBlock -> T.Text
+block (AParagraph paragraph) = inlines paragraph
+block (AHeading heading) = T.pack "# " <> heading
+block (ABullet bullet) = T.pack "- " <> inlines bullet
+block (AQuote quote) = T.pack "> " <> inlines quote
+block ABlank = T.pack ""
+block (ATag tag) = T.pack "! " <> tag
+block (AKeyValue key value) = spaced [T.pack "!", key, value]
+block (ATriple subject predicate object) = spaced [T.pack "&", subject, predicate, object]
 
-document :: Document -> T.Text
+document :: AuthoredDocument -> T.Text
 document = T.intercalate (T.pack "\n") . map block

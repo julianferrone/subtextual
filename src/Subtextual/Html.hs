@@ -1,6 +1,6 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Subtextual.Html (renderBlock, renderDoc) where
+module Subtextual.Html (renderABlock, renderDoc) where
 
 import Subtextual.Core
 import Lucid
@@ -21,23 +21,23 @@ inlines :: [Inline] -> Html ()
 inlines = mconcat . map inline
 
 ------------------------------------------------------------
---                      Block to HTML                     --
+--                      AuthoredBlock to HTML                     --
 ------------------------------------------------------------
 
-block :: Block -> Html ()
-block (Paragraph paragraph) = (p_ . inlines) paragraph
-block (Heading heading) = (h2_ . toHtml) heading
-block (Bullet bullet) = (li_ . inlines) bullet
-block (Quote quote) = (blockquote_ . inlines) quote
-block Blank = mempty
-block (Tag tag) = (div_ [class_ "tag"] . toHtml) tag
-block (KeyValue key value) = 
+block :: AuthoredBlock -> Html ()
+block (AParagraph paragraph) = (p_ . inlines) paragraph
+block (AHeading heading) = (h2_ . toHtml) heading
+block (ABullet bullet) = (li_ . inlines) bullet
+block (AQuote quote) = (blockquote_ . inlines) quote
+block ABlank = mempty
+block (ATag tag) = (div_ [class_ "tag"] . toHtml) tag
+block (AKeyValue key value) = 
     div_ 
         [class_ "keyvalue"] 
         ( div_ [class_ "key"] (toHtml key) 
             <> div_ [class_ "value"] (toHtml value)
         ) 
-block (Triple subject predicate object) = 
+block (ATriple subject predicate object) = 
     (div_ [class_ "triple"] . mconcat) [
             div_ [class_ "subject"] (toHtml subject),
             div_ [class_ "predicate"] (toHtml predicate),
@@ -45,36 +45,36 @@ block (Triple subject predicate object) =
         ]
 
 ------------------------------------------------------------
---                    Document to HTML                    --
+--                    AuthoredDocument to HTML                    --
 ------------------------------------------------------------
 
 data Group a =
     Single a
-    | Bullets [a]
+    | ABullets [a]
 
-document :: Document -> Html ()
+document :: AuthoredDocument -> Html ()
 document = mconcat . map groupHtml . group' where
-    groupHtml :: Group Block -> Html ()
+    groupHtml :: Group AuthoredBlock -> Html ()
     groupHtml (Single b) = block b
-    groupHtml (Bullets bs) = ul_ $ (mconcat . map block) bs
+    groupHtml (ABullets bs) = ul_ $ (mconcat . map block) bs
 
-    group' :: Document -> [Group Block]
+    group' :: AuthoredDocument -> [Group AuthoredBlock]
     group' doc = group doc []
 
-    group :: Document -> [Group Block] -> [Group Block]
+    group :: AuthoredDocument -> [Group AuthoredBlock] -> [Group AuthoredBlock]
     group [] done = (reverse . map reverseGroup) done
-    group (Bullet b : todo) (Bullets bs : done) = group todo $ Bullets (Bullet b : bs) : done
-    group (Bullet b : todo) done = group todo $ Bullets [Bullet b] : done
+    group (ABullet b : todo) (ABullets bs : done) = group todo $ ABullets (ABullet b : bs) : done
+    group (ABullet b : todo) done = group todo $ ABullets [ABullet b] : done
     group (b : todo) done = group todo $ Single b : done
 
     reverseGroup :: Group a -> Group a
     reverseGroup (Single s) = Single s
-    reverseGroup (Bullets bs) = Bullets $ reverse bs
+    reverseGroup (ABullets bs) = ABullets $ reverse bs
 
 ----------     Subtext to HTML-formatted Text     ----------
 
-renderBlock :: Block -> T.Text
-renderBlock = toStrict . renderText . block
+renderABlock :: AuthoredBlock -> T.Text
+renderABlock = toStrict . renderText . block
 
-renderDoc :: Document -> T.Text
+renderDoc :: AuthoredDocument -> T.Text
 renderDoc = toStrict . renderText . document
