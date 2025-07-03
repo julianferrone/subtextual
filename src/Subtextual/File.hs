@@ -9,16 +9,28 @@ module Subtextual.File (
 ) where
 
 import Data.Attoparsec.Text (parseOnly)
-import Data.Either (rights)
 import Subtextual.Core (Document)
 
+
+import qualified Data.ByteString as B (readFile, writeFile)
 import qualified Data.Text as T
-import qualified Data.Text.IO.Utf8 as I
+import qualified Data.Text.Encoding as E (decodeUtf8, encodeUtf8)
+import qualified Data.Text.IO as I
 import qualified Subtextual.Html as H
 import qualified Subtextual.Parser as P
 import qualified Subtextual.Unparser as U
 import qualified System.FilePath as FP
 import qualified System.Directory as D
+
+------------------------------------------------------------
+--                         UTF8 IO                        --
+------------------------------------------------------------
+
+readFileUtf8 :: FilePath -> IO T.Text
+readFileUtf8 fp = E.decodeUtf8 <$> B.readFile fp
+
+writeFileUtf8 :: FilePath -> T.Text -> IO ()
+writeFileUtf8 fp text = B.writeFile fp (E.encodeUtf8 text)
 
 ------------------------------------------------------------
 --                 Selecting Subtext Files                --
@@ -39,7 +51,7 @@ subtextFilesInDir dir = do
 
 readSubtext :: FilePath -> IO (Either String (String, Document))
 readSubtext fp = do 
-    file <- I.readFile fp
+    file <- readFileUtf8 fp
     let result = parseOnly P.document file
     case result of
         Left err -> return $ Left err
@@ -61,7 +73,7 @@ write' ::
     -> FilePath           -- Filepath to write the Document to
     -> Document           -- The Document
     -> IO ()              -- Writing the file
-write' f fp doc = I.writeFile fp $ f doc
+write' f fp doc = writeFileUtf8 fp $ f doc
 
 qualifyPath ::
     FilePath
