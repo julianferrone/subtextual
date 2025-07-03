@@ -16,6 +16,7 @@ data TransclusionOptions =
     | FirstLines Int
     | Lines Int Int
     | HeadingSection T.Text
+    deriving (Show, Eq)
 
 {-
 TODO: Specialise the `Block` type into `AuthoredBlock` and add a `ViewerBlock`
