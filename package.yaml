@@ -24,6 +24,7 @@ dependencies:
 - attoparsec
 - lucid
 - text
+- bytestring
 - filepath
 - directory
 - string-interpolate

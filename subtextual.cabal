@@ -40,6 +40,7 @@ library
   build-depends:
       attoparsec
     , base >=4.7 && <5
+    , bytestring
     , directory
     , filepath
     , lucid
@@ -59,6 +60,7 @@ executable subtextual-exe
   build-depends:
       attoparsec
     , base >=4.7 && <5
+    , bytestring
     , directory
     , filepath
     , lucid
@@ -85,6 +87,7 @@ test-suite subtextual-test
   build-depends:
       attoparsec
     , base >=4.7 && <5
+    , bytestring
     , directory
     , filepath
     , hspec
