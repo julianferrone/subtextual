@@ -1,4 +1,4 @@
-module Subtextual.Parser (parseNonBlankBlock, parseDocument) where
+module Subtextual.Parser (parseNonBlankBlock, parseBlockOrRefs) where
 
 import Control.Applicative
 import Control.Monad
@@ -181,12 +181,12 @@ parseNonBlankBlock =
     <|> parseParagraph
     <?> "parseNonBlankBlock"
 
-parseNonBlankBlocks :: Parser [Block]
-parseNonBlankBlocks = many1 parseNonBlankBlock <?> "parseNonBlankABlocks"
+parseNonBlankBlocks :: Parser [BlockOrRef]
+parseNonBlankBlocks = many1 (Left <$> parseNonBlankBlock) <?> "parseNonBlankBlocks"
 
 ----------          Parsing Blank Blocks          ----------
 
-parseNewLines :: Parser [Block]
+parseNewLines :: Parser [BlockOrRef]
 parseNewLines =
   do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
@@ -194,19 +194,66 @@ parseNewLines =
     return $ Left <$> replicate (len - 1) Blank
     <?> "parseNewLines"
 
+----------          Parsing Transclusions         ----------
+
+parseWholeDocument :: Parser TransclusionOptions
+parseWholeDocument = do
+  _ <- skipSpace
+  return WholeDocument
+  <?> "parseWholeDocument"
+
+parseFirstLines :: Parser TransclusionOptions
+parseFirstLines = 
+  FirstLines
+  <$> prefixed '|' decimal
+  <?> "parseFirstLines"
+
+parseLines :: Parser TransclusionOptions
+parseLines = prefixed '|' inner <?> "parseLines"
+  where
+    inner = do
+      start <- decimal 
+      _ <- skipSpace 
+      length <- decimal
+      return $ Lines start length
+
+parseHeadingSection :: Parser TransclusionOptions
+parseHeadingSection = 
+  HeadingSection 
+  <$> prefixed '#' takeUntilEndOfLine
+  <?> "parseHeadingSection"
+
+parseTransclusionOptions :: Parser TransclusionOptions
+parseTransclusionOptions =
+  parseLines
+  <|> parseFirstLines
+  <|> parseHeadingSection
+  <|> parseWholeDocument
+  <?> "parseTransclusionOptions"
+
+parseTransclusion :: Parser Transclusion
+parseTransclusion = prefixed '$' inner <?> "parseTransclusion"
+  where
+    inner = do
+      docName <- parseDocumentName
+      _ <- whitespace
+      options <- parseTransclusionOptions
+      _ <- takeUntilEndOfLine
+      return $ Transclusion docName options
+
+parseTransclusions :: Parser [BlockOrRef]
+parseTransclusions = many1 (Right <$> parseTransclusion) <?> "parseTransclusions"
+
 ------------------------------------------------------------
 --                    Document Parsing                    --
 ------------------------------------------------------------
-
-
 
 parseBlockOrRefs :: Parser [BlockOrRef]
 parseBlockOrRefs =
   concat
     <$> many1 (
-      Left 
-      <$> parseNonBlankBlocks 
-      <|> Left 
-      <$> parseNewLines
+        parseTransclusions
+        <|> parseNonBlankBlocks
+        <|> parseNewLines
       )
     <?> "parseBlockOrRefs"
