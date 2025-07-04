@@ -56,6 +56,10 @@ data TransclusionOptions
   | HeadingSection T.Text
   deriving (Show, Eq)
 
+data Transclusion
+  = Transclusion DocumentName TransclusionOptions
+  deriving (Show, Eq)
+
 ----------                 Blocks                 ----------
 
 data Block
@@ -70,3 +74,18 @@ data Block
   deriving (Show, Eq)
 
 type Document = [Block]
+
+------------------------------------------------------------
+--                   Corpus of Documents                  --
+------------------------------------------------------------
+
+data Corpus
+  = Corpus
+      (Map DocumentName Document) -- The map of document names to documents
+      (Map DocumentName (Map String Document)) -- Map of document names to map of heading names to subsections
+
+resolveTransclusion :: Corpus -> Transclusion -> [Block]
+resolveTransclusion (Corpus docs _) (Transclusion name WholeDocument) = Map.lookup name
+
+resolveTransclusions :: Corpus -> [Either Block Transclusion] -> [Block]
+resolveTransclusions = fmap . either id . resolveTransclusion
