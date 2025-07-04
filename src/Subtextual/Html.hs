@@ -1,7 +1,7 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Subtextual.Html (renderABlock, renderDoc) where
+module Subtextual.Html (renderBlock, renderDoc) where
 
 import qualified Data.Text as T
 import Data.Text.Lazy (toStrict)
@@ -12,33 +12,33 @@ import Subtextual.Core
 --                     Inlines to HTML                    --
 ------------------------------------------------------------
 
-inline :: Inline -> Html ()
-inline (PlainText p) = (span_ . toHtml) p
-inline (BareUrl url) = a_ [href_ url] $ toHtml url
-inline (AngledUrl url) = a_ [href_ url] $ toHtml url
-inline (SlashLink (DocumentName dn)) = a_ [href_ dn, class_ "slashlink"] $ toHtml dn
+inlineHtml :: Inline -> Html ()
+inlineHtml (PlainText p) = (span_ . toHtml) p
+inlineHtml (BareUrl url) = a_ [href_ url] $ toHtml url
+inlineHtml (AngledUrl url) = a_ [href_ url] $ toHtml url
+inlineHtml (SlashLink (DocumentName dn)) = a_ [href_ dn, class_ "slashlink"] $ toHtml dn
 
-inlines :: [Inline] -> Html ()
-inlines = mconcat . map inline
+inlinesHtml :: [Inline] -> Html ()
+inlinesHtml = mconcat . map inlineHtml
 
 ------------------------------------------------------------
 --                      Block to HTML                     --
 ------------------------------------------------------------
 
-block :: Block -> Html ()
-block (Paragraph paragraph) = (p_ . inlines) paragraph
-block (Heading heading) = (h2_ . toHtml) heading
-block (Bullet bullet) = (li_ . inlines) bullet
-block (Quote quote) = (blockquote_ . inlines) quote
-block Blank = mempty
-block (Tag tag) = (div_ [class_ "tag"] . toHtml) tag
-block (KeyValue key value) =
+blockHtml :: Block -> Html ()
+blockHtml (Paragraph paragraph) = (p_ . inlinesHtml) paragraph
+blockHtml (Heading heading) = (h2_ . toHtml) heading
+blockHtml (Bullet bullet) = (li_ . inlinesHtml) bullet
+blockHtml (Quote quote) = (blockquote_ . inlinesHtml) quote
+blockHtml Blank = mempty
+blockHtml (Tag tag) = (div_ [class_ "tag"] . toHtml) tag
+blockHtml (KeyValue key value) =
   div_
     [class_ "keyvalue"]
     ( div_ [class_ "key"] (toHtml key)
         <> div_ [class_ "value"] (toHtml value)
     )
-block (Triple subject predicate object) =
+blockHtml (Triple subject predicate object) =
   (div_ [class_ "triple"] . mconcat)
     [ div_ [class_ "subject"] (toHtml subject),
       div_ [class_ "predicate"] (toHtml predicate),
@@ -53,12 +53,12 @@ data Group a
   = Single a
   | Bullets [a]
 
-document :: Document -> Html ()
-document = mconcat . map groupHtml . group'
+documentHtml :: Document -> Html ()
+documentHtml = mconcat . map groupHtml . group'
   where
     groupHtml :: Group Block -> Html ()
-    groupHtml (Single b) = block b
-    groupHtml (Bullets bs) = ul_ $ (mconcat . map block) bs
+    groupHtml (Single b) = blockHtml b
+    groupHtml (Bullets bs) = ul_ $ (mconcat . map blockHtml) bs
 
     group' :: Document -> [Group Block]
     group' doc = group doc []
@@ -75,8 +75,8 @@ document = mconcat . map groupHtml . group'
 
 ----------     Subtext to HTML-formatted Text     ----------
 
-renderABlock :: Block -> T.Text
-renderABlock = toStrict . renderText . block
+renderBlock :: Block -> T.Text
+renderBlock = toStrict . renderText . blockHtml
 
 renderDoc :: Document -> T.Text
-renderDoc = toStrict . renderText . document
+renderDoc = toStrict . renderText . documentHtml
