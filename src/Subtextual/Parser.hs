@@ -1,4 +1,4 @@
-module Subtextual.Parser (parseNonBlankABlock, parseDocument) where
+module Subtextual.Parser (parseNonBlankBlock, parseDocument) where
 
 import Control.Applicative
 import Control.Monad
@@ -164,8 +164,8 @@ parseTriple = prefixed '&' inner <?> "triple"
       object <- takeUntilEndOfLine
       return . Left $ Triple subject predicate object
 
-parseNonBlankABlock :: Parser BlockOrRef
-parseNonBlankABlock =
+parseNonBlankBlock :: Parser BlockOrRef
+parseNonBlankBlock =
   parseHeading
     <|> parseBullet
     <|> parseQuote
@@ -173,10 +173,10 @@ parseNonBlankABlock =
     <|> parseTag
     <|> parseTriple
     <|> parseParagraph
-    <?> "parseNonBlankABlock"
+    <?> "parseNonBlankBlock"
 
-parseNonBlankABlocks :: Parser [BlockOrRef]
-parseNonBlankABlocks = many1 parseNonBlankABlock <?> "parseNonBlankABlocks"
+parseNonBlankBlocks :: Parser [BlockOrRef]
+parseNonBlankBlocks = many1 parseNonBlankBlock <?> "parseNonBlankABlocks"
 
 ----------              Blank ABlocks              ----------
 
@@ -195,5 +195,5 @@ parseNewLines =
 parseDocument :: Parser [BlockOrRef]
 parseDocument =
   concat
-    <$> many1 (parseNonBlankABlocks <|> parseNewLines)
+    <$> many1 (parseNonBlankBlocks <|> parseNewLines)
     <?> "parseDocument"
