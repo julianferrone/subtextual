@@ -1,11 +1,12 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 module Subtextual.Html (renderABlock, renderDoc) where
 
-import Subtextual.Core
-import Lucid
 import qualified Data.Text as T
 import Data.Text.Lazy (toStrict)
+import Lucid
+import Subtextual.Core
 
 ------------------------------------------------------------
 --                     Inlines to HTML                    --
@@ -31,29 +32,30 @@ block (ABullet bullet) = (li_ . inlines) bullet
 block (AQuote quote) = (blockquote_ . inlines) quote
 block ABlank = mempty
 block (ATag tag) = (div_ [class_ "tag"] . toHtml) tag
-block (AKeyValue key value) = 
-    div_ 
-        [class_ "keyvalue"] 
-        ( div_ [class_ "key"] (toHtml key) 
-            <> div_ [class_ "value"] (toHtml value)
-        ) 
-block (ATriple subject predicate object) = 
-    (div_ [class_ "triple"] . mconcat) [
-            div_ [class_ "subject"] (toHtml subject),
-            div_ [class_ "predicate"] (toHtml predicate),
-            div_ [class_ "object"] (toHtml object)
-        ]
+block (AKeyValue key value) =
+  div_
+    [class_ "keyvalue"]
+    ( div_ [class_ "key"] (toHtml key)
+        <> div_ [class_ "value"] (toHtml value)
+    )
+block (ATriple subject predicate object) =
+  (div_ [class_ "triple"] . mconcat)
+    [ div_ [class_ "subject"] (toHtml subject),
+      div_ [class_ "predicate"] (toHtml predicate),
+      div_ [class_ "object"] (toHtml object)
+    ]
 
 ------------------------------------------------------------
 --                    AuthoredDocument to HTML                    --
 ------------------------------------------------------------
 
-data Group a =
-    Single a
-    | ABullets [a]
+data Group a
+  = Single a
+  | ABullets [a]
 
 document :: AuthoredDocument -> Html ()
-document = mconcat . map groupHtml . group' where
+document = mconcat . map groupHtml . group'
+  where
     groupHtml :: Group AuthoredBlock -> Html ()
     groupHtml (Single b) = block b
     groupHtml (ABullets bs) = ul_ $ (mconcat . map block) bs

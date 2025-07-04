@@ -1,8 +1,7 @@
-module Subtextual.Unparser
-    (inline, block, document) where
+module Subtextual.Unparser (inline, block, document) where
 
-import Subtextual.Core
 import qualified Data.Text as T
+import Subtextual.Core
 
 inline :: Inline -> T.Text
 inline (PlainText p) = p

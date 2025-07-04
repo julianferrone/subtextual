@@ -1,14 +1,12 @@
-module Subtextual.Parser
-    (nonABlankABlock, document) where
+module Subtextual.Parser (nonABlankABlock, document) where
 
 import Control.Applicative
 import Control.Monad
+import Data.Attoparsec.Combinator
+import Data.Attoparsec.Text
 import Data.Char
 import Data.Functor
-import Data.Attoparsec.Text
-import Data.Attoparsec.Combinator
 import qualified Data.Text as T
-
 import Subtextual.Core
 
 ------------------------------------------------------------
@@ -32,31 +30,32 @@ string' :: String -> Parser T.Text
 string' = string . T.pack
 
 bareUrl :: Parser Inline
-bareUrl = do
+bareUrl =
+  do
     schema <- string' "https://" <|> string' "http://"
     body <- manyTill anyChar $ lookAhead endOfUrl
     let url = schema <> T.pack body
     return $ BareUrl url
     <?> "bareUrl"
+  where
+    endOfUrl :: Parser ()
+    endOfUrl =
+      punctuationBoundary
+        <|> space $> ()
+        <|> endOfInput
 
-    where
-        endOfUrl :: Parser ()
-        endOfUrl = 
-            punctuationBoundary 
-            <|> space $> () 
-            <|> endOfInput
-
-        punctuationBoundary :: Parser ()
-        punctuationBoundary = do
-            _ <- char '.' <|> char ';' <|> char ','
-            _ <- skip isSpace <|> endOfLine
-            return ()
+    punctuationBoundary :: Parser ()
+    punctuationBoundary = do
+      _ <- char '.' <|> char ';' <|> char ','
+      _ <- skip isSpace <|> endOfLine
+      return ()
 
 isAngledUrlChar :: Char -> Bool
 isAngledUrlChar c = not $ c == '<' || c == '>' || isSpace c
 
 angledUrl :: Parser Inline
-angledUrl = do
+angledUrl =
+  do
     _ <- string' "<"
     url <- takeWhile1 isAngledUrlChar
     _ <- string' ">"
@@ -64,40 +63,42 @@ angledUrl = do
     <?> "angledUrl"
 
 isSlashLinkChar :: Char -> Bool
-isSlashLinkChar c = 
-    isAlpha c 
-    || isDigit c 
-    || c == '-' 
-    || c == '_' 
-    || c == '/' 
+isSlashLinkChar c =
+  isAlpha c
+    || isDigit c
+    || c == '-'
+    || c == '_'
+    || c == '/'
 
 slashLink :: Parser Inline
-slashLink = do
+slashLink =
+  do
     _ <- char '/'
     link <- takeWhile1 isSlashLinkChar
     return $ SlashLink link
     <?> "slashLink"
 
 inline :: Parser Inline
-inline = 
-    bareUrl
+inline =
+  bareUrl
     <|> angledUrl
     <|> slashLink
     <|> plainText
     <?> "inline"
 
 inlines :: Parser [Inline]
-inlines = do
+inlines =
+  do
     parsed <- many1 inline
     let parsed' = smoosh parsed []
     return parsed'
     <?> "inlines"
-    where
-        smoosh :: [Inline] -> [Inline] -> [Inline]
-        smoosh [] finished = reverse finished
-        smoosh (PlainText p : todo) (PlainText p' : done) = 
-            smoosh todo $ PlainText (p' <> p) : done
-        smoosh (i : todo) done = smoosh todo (i : done)
+  where
+    smoosh :: [Inline] -> [Inline] -> [Inline]
+    smoosh [] finished = reverse finished
+    smoosh (PlainText p : todo) (PlainText p' : done) =
+      smoosh todo $ PlainText (p' <> p) : done
+    smoosh (i : todo) done = smoosh todo (i : done)
 
 ------------------------------------------------------------
 --                      AuthoredBlock Parsing                     --
@@ -130,29 +131,29 @@ tag = ATag <$> prefixed '!' word <?> "tag"
 
 keyValue :: Parser AuthoredBlock
 keyValue = prefixed '!' inner <?> "keyValue"
-    where 
-        inner :: Parser AuthoredBlock
-        inner = do
-            key <- word
-            _ <- whitespace
-            value <- takeUntilEndOfLine
-            return $ AKeyValue key value
+  where
+    inner :: Parser AuthoredBlock
+    inner = do
+      key <- word
+      _ <- whitespace
+      value <- takeUntilEndOfLine
+      return $ AKeyValue key value
 
 triple :: Parser AuthoredBlock
 triple = prefixed '&' inner <?> "triple"
-    where
-        inner :: Parser AuthoredBlock
-        inner = do
-            subject <- word
-            _ <- whitespace
-            predicate <- word
-            _ <- whitespace
-            object <- takeUntilEndOfLine
-            return $ ATriple subject predicate object
+  where
+    inner :: Parser AuthoredBlock
+    inner = do
+      subject <- word
+      _ <- whitespace
+      predicate <- word
+      _ <- whitespace
+      object <- takeUntilEndOfLine
+      return $ ATriple subject predicate object
 
 nonABlankABlock :: Parser AuthoredBlock
-nonABlankABlock = 
-    heading
+nonABlankABlock =
+  heading
     <|> bullet
     <|> quote
     <|> keyValue
@@ -167,7 +168,8 @@ nonABlankABlocks = many1 nonABlankABlock <?> "nonABlankABlocks"
 ----------              ABlank ABlocks              ----------
 
 newLines :: Parser AuthoredDocument
-newLines = do
+newLines =
+  do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
     let len = length eols
     return $ replicate (len - 1) ABlank
