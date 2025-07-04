@@ -15,7 +15,7 @@ import qualified Data.ByteString as B (readFile, writeFile)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E (decodeUtf8, encodeUtf8)
 import qualified Data.Text.IO as I
-import Subtextual.Core (Document)
+import Subtextual.Core (BlockOrRef, Document)
 import qualified Subtextual.Html as H
 import qualified Subtextual.Parser as P
 import qualified Subtextual.Unparser as U
@@ -49,7 +49,7 @@ subtextFilesInDir dir = do
 --                  Reading Subtext Files                 --
 ------------------------------------------------------------
 
-readSubtext :: FilePath -> IO (Either String (String, Document))
+readSubtext :: FilePath -> IO (Either String (String, [BlockOrRef]))
 readSubtext fp = do
   file <- readFileUtf8 fp
   let result = parseOnly P.parseDocument file
@@ -59,7 +59,7 @@ readSubtext fp = do
       let docName = FP.takeBaseName fp
       return $ Right (docName, doc')
 
-readSubtexts :: FilePath -> IO [Either String (String, Document)]
+readSubtexts :: FilePath -> IO [Either String (String, [BlockOrRef])]
 readSubtexts dir = do
   subtextFiles <- subtextFilesInDir dir
   mapM readSubtext subtextFiles
@@ -69,28 +69,28 @@ readSubtexts dir = do
 ------------------------------------------------------------
 
 write' ::
-  (Document -> T.Text) -> -- Render the Document as Text
+  (a -> T.Text) -> -- Render the Document as Text
   FilePath -> -- Filepath to write the Document to
-  Document -> -- The Document
+  a -> -- The Document
   IO () -- Writing the file
 write' f fp doc = writeFileUtf8 fp $ f doc
 
 qualifyPath ::
   FilePath ->
-  (String, Document) ->
-  (FilePath, Document)
+  (String, a) ->
+  (FilePath, a)
 qualifyPath parentDir (name, doc) = (parentDir FP.</> name, doc)
 
 qualifyPaths ::
   FilePath -> -- The parent directory
-  [(String, Document)] -> -- The named documents
-  [(FilePath, Document)] -- The filepaths for the documents
+  [(String, a)] -> -- The named documents
+  [(FilePath, a)] -- The filepaths for the documents
 qualifyPaths parentDir = map (qualifyPath parentDir)
 
 writes' ::
-  (FilePath -> Document -> IO ()) -> -- Write a Document to a filepath
+  (FilePath -> a -> IO ()) -> -- Write a Document to a filepath
   FilePath -> -- Filepath of the parent directory
-  [(String, Document)] -> -- The list of named Documents
+  [(String, a)] -> -- The list of named Documents
   IO () -- Writing the file
 writes' writeF parentDir namedDocs =
   mapM_
@@ -99,10 +99,10 @@ writes' writeF parentDir namedDocs =
 
 ----------                 Subtext                ----------
 
-writeSubtext :: FilePath -> Document -> IO ()
-writeSubtext = write' U.document
+writeSubtext :: FilePath -> [BlockOrRef] -> IO ()
+writeSubtext = write' U.unparseBlockOrRefs
 
-writeSubtexts :: FilePath -> [(String, Document)] -> IO ()
+writeSubtexts :: FilePath -> [(String, [BlockOrRef])] -> IO ()
 writeSubtexts = writes' writeSubtext
 
 ----------                  HTML                  ----------
@@ -117,25 +117,35 @@ writeHtmls = writes' writeHtml
 --                 Piping Subtext to HTML                 --
 ------------------------------------------------------------
 
+{-
+TODO: Fix so we transclude documents before piping to HTML
+I think we'll have to remove transcribing just one
+document at a time, as it might contain a transclusion reference.
+
+Instead we'll only allow operating on entire corpuses at once.
+-}
+
 transcribeSubtextToHtml :: FilePath -> FilePath -> IO (Either String ())
-transcribeSubtextToHtml src dst = do
-  subtext <- readSubtext src
-  case subtext of
-    Left err -> return (Left err)
-    Right (_, doc) -> do
-      _ <- writeHtml dst doc
-      return (Right ())
+transcribeSubtextToHtml = _
+-- transcribeSubtextToHtml src dst = do
+--   subtext <- readSubtext src
+--   case subtext of
+--     Left err -> return (Left err)
+--     Right (_, doc) -> do
+--       _ <- writeHtml dst doc
+--       return (Right ())
 
 transcribeSubtextDirToHtml :: FilePath -> FilePath -> IO [Either String ()]
-transcribeSubtextDirToHtml srcDir dstDir = do
-  subtexts <- readSubtexts srcDir
-  let qualifyRightPath = fmap $ qualifyPath dstDir
-  let namedDocs = qualifyRightPath <$> subtexts
-  mapM
-    ( \case
-        Left err -> return (Left err)
-        Right (dst, doc) -> do
-          _ <- writeHtml dst doc
-          return (Right ())
-    )
-    namedDocs
+transcribeSubtextDirToHtml = _
+-- transcribeSubtextDirToHtml srcDir dstDir = do
+--   subtexts <- readSubtexts srcDir
+--   let qualifyRightPath = fmap $ qualifyPath dstDir
+--   let namedDocs = qualifyRightPath <$> subtexts
+--   mapM
+--     ( \case
+--         Left err -> return (Left err)
+--         Right (dst, doc) -> do
+--           _ <- writeHtml dst doc
+--           return (Right ())
+--     )
+--     namedDocs
