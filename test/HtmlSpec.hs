@@ -10,10 +10,10 @@ spec :: Spec
 spec = do
   describe "block" $ do
     it "renders a plaintext paragraph into HTML" $ do
-      Html.renderABlock (Paragraph [PlainText (T.pack "Hello, world!")])
+      Html.renderBlock (Paragraph [PlainText (T.pack "Hello, world!")])
         `shouldBe` T.pack "<p><span>Hello, world!</span></p>"
     it "renders a complex paragraph into HTML" $ do
-      Html.renderABlock
+      Html.renderBlock
         ( Paragraph
             [ PlainText (T.pack "Hello, "),
               BareUrl (T.pack "https://google.com"),
@@ -23,25 +23,25 @@ spec = do
         )
         `shouldBe` T.pack "<p><span>Hello, </span><a href=\"https://google.com\">https://google.com</a><span> and </span><a href=\"doi:10.1000/100\">doi:10.1000/100</a></p>"
     it "renders a heading into HTML" $ do
-      Html.renderABlock (Heading (T.pack "Test"))
+      Html.renderBlock (Heading (T.pack "Test"))
         `shouldBe` T.pack "<h2>Test</h2>"
     it "renders a bullet into HTML" $ do
-      Html.renderABlock (Bullet [PlainText (T.pack "Test")])
+      Html.renderBlock (Bullet [PlainText (T.pack "Test")])
         `shouldBe` T.pack "<li><span>Test</span></li>"
     it "renders a quote into HTML" $ do
-      Html.renderABlock (Quote [PlainText (T.pack "Test")])
+      Html.renderBlock (Quote [PlainText (T.pack "Test")])
         `shouldBe` T.pack "<blockquote><span>Test</span></blockquote>"
     it "renders a slashlink into HTML" $ do
-      Html.renderABlock (Paragraph [(SlashLink . documentName . T.pack) "test"])
+      Html.renderBlock (Paragraph [(SlashLink . documentName . T.pack) "test"])
         `shouldBe` T.pack "<p><a href=\"test\" class=\"slashlink\">test</a></p>"
     it "renders a tag into HTML" $ do
-      Html.renderABlock (Tag (T.pack "Tag"))
+      Html.renderBlock (Tag (T.pack "Tag"))
         `shouldBe` T.pack "<div class=\"tag\">Tag</div>"
     it "renders a key value pair into HTML" $ do
-      Html.renderABlock (KeyValue (T.pack "Key") (T.pack "Value"))
+      Html.renderBlock (KeyValue (T.pack "Key") (T.pack "Value"))
         `shouldBe` T.pack "<div class=\"keyvalue\"><div class=\"key\">Key</div><div class=\"value\">Value</div></div>"
     it "renders a triple into HTML" $ do
-      Html.renderABlock (Triple (T.pack "Subject") (T.pack "Predicate") (T.pack "Object"))
+      Html.renderBlock (Triple (T.pack "Subject") (T.pack "Predicate") (T.pack "Object"))
         `shouldBe` T.pack "<div class=\"triple\"><div class=\"subject\">Subject</div><div class=\"predicate\">Predicate</div><div class=\"object\">Object</div></div>"
   describe "document" $ do
     it "renders a document into HTML" $ do
