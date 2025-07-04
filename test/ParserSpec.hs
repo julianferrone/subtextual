@@ -81,22 +81,22 @@ spec = do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "$ notes")
-        $ Right $ Transclusion (T.pack "notes") WholeDocument
+        $ Right $ Transclusion ((documentName . T.pack) "notes") WholeDocument
     it "parses a transclusion with the FirstLines option" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "$ notes | 5")
-        $ Right $ Transclusion (T.pack "notes") (FirstLines 5)
+        $ Right $ Transclusion ((documentName . T.pack) "notes") $ FirstLines 5
     it "parses a transclusion with the Lines option" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "$ notes | 5 10")
-        $ Right $ Transclusion (T.pack "notes") (Lines 5 10)
+        $ Right $ Transclusion ((documentName . T.pack) "notes") $ Lines 5 10
     it "parses a transclusion with the WholeDocument option" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "$ notes # heading 1")
-        $ Right $ Transclusion (T.pack "notes") (HeadingSection . T.pack "heading 1")
+        $ Right $ Transclusion ((documentName . T.pack) "notes") $ HeadingSection $ T.pack "heading 1"
   describe "document" $ do
     it "parses a whole document" $ do
       shouldMatch
