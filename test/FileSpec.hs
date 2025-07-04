@@ -31,7 +31,7 @@ spec = do
                 ABlank,
                 AParagraph
                   [ PlainText (T.pack "Evolving systems exist in "),
-                    SlashLink (T.pack "punctuated-equilibrium"),
+                    (SlashLink . documentName . T.pack) "punctuated-equilibrium",
                     PlainText (T.pack ".")
                   ],
                 ABlank,

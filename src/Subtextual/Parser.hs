@@ -1,10 +1,10 @@
-module Subtextual.Parser (nonABlankABlock, document) where
+module Subtextual.Parser (parseNonBlankABlock, parseDocument) where
 
 import Control.Applicative
 import Control.Monad
 import Data.Attoparsec.Combinator
 import Data.Attoparsec.Text
-import Data.Char
+import Data.Char (isSpace)
 import Data.Functor
 import qualified Data.Text as T
 import Subtextual.Core
@@ -23,20 +23,23 @@ word = takeWhile1 (not . isSpace) <?> "word"
 --                     Inline Parsing                     --
 ------------------------------------------------------------
 
-plainText :: Parser Inline
-plainText = PlainText <$> (word <|> whitespace) <?> "plainText"
+parsePlainText :: Parser Inline
+parsePlainText =
+  PlainText
+    <$> (word <|> whitespace)
+    <?> "parsePlainText"
 
 string' :: String -> Parser T.Text
 string' = string . T.pack
 
-bareUrl :: Parser Inline
-bareUrl =
+parseBareUrl :: Parser Inline
+parseBareUrl =
   do
     schema <- string' "https://" <|> string' "http://"
     body <- manyTill anyChar $ lookAhead endOfUrl
     let url = schema <> T.pack body
     return $ BareUrl url
-    <?> "bareUrl"
+    <?> "parseBareUrl"
   where
     endOfUrl :: Parser ()
     endOfUrl =
@@ -50,49 +53,38 @@ bareUrl =
       _ <- skip isSpace <|> endOfLine
       return ()
 
-isAngledUrlChar :: Char -> Bool
-isAngledUrlChar c = not $ c == '<' || c == '>' || isSpace c
-
-angledUrl :: Parser Inline
-angledUrl =
+parseAngledUrl :: Parser Inline
+parseAngledUrl =
   do
     _ <- string' "<"
     url <- takeWhile1 isAngledUrlChar
     _ <- string' ">"
     return $ AngledUrl url
-    <?> "angledUrl"
+    <?> "parseAngledUrl"
 
-isSlashLinkChar :: Char -> Bool
-isSlashLinkChar c =
-  isAlpha c
-    || isDigit c
-    || c == '-'
-    || c == '_'
-    || c == '/'
-
-slashLink :: Parser Inline
-slashLink =
+parseSlashLink :: Parser Inline
+parseSlashLink =
   do
     _ <- char '/'
     link <- takeWhile1 isSlashLinkChar
-    return $ SlashLink link
-    <?> "slashLink"
+    return . SlashLink . DocumentName $ link
+    <?> "parseSlashLink"
 
-inline :: Parser Inline
-inline =
-  bareUrl
-    <|> angledUrl
-    <|> slashLink
-    <|> plainText
-    <?> "inline"
+parseInline :: Parser Inline
+parseInline =
+  parseBareUrl
+    <|> parseAngledUrl
+    <|> parseSlashLink
+    <|> parsePlainText
+    <?> "parseInline"
 
-inlines :: Parser [Inline]
-inlines =
+parseInlines :: Parser [Inline]
+parseInlines =
   do
-    parsed <- many1 inline
+    parsed <- many1 parseInline
     let parsed' = smoosh parsed []
     return parsed'
-    <?> "inlines"
+    <?> "parseInlines"
   where
     smoosh :: [Inline] -> [Inline] -> [Inline]
     smoosh [] finished = reverse finished
@@ -107,30 +99,51 @@ inlines =
 ----------                 Helpers                ----------
 
 prefixed :: Char -> Parser a -> Parser a
-prefixed c parser = char c *> skipSpace *> parser
+prefixed c parser =
+  char c
+    *> skipSpace
+    *> parser
+    <?> "prefixed"
 
 takeUntilEndOfLine :: Parser T.Text
-takeUntilEndOfLine = takeWhile1 (not . isEndOfLine) <?> "takeUntilEndOfLine"
+takeUntilEndOfLine =
+  takeWhile1 (not . isEndOfLine)
+    <?> "takeUntilEndOfLine"
 
 ----------            Non-ABlank ABlocks            ----------
 
-paragraph :: Parser AuthoredBlock
-paragraph = AParagraph <$> inlines <?> "paragraph"
+parseParagraph :: Parser AuthoredBlock
+parseParagraph =
+  AParagraph
+    <$> parseInlines
+    <?> "parseParagraph"
 
-heading :: Parser AuthoredBlock
-heading = AHeading <$> prefixed '#' takeUntilEndOfLine <?> "heading"
+parseHeading :: Parser AuthoredBlock
+parseHeading =
+  AHeading
+    <$> prefixed '#' takeUntilEndOfLine
+    <?> "parseHeading"
 
-bullet :: Parser AuthoredBlock
-bullet = ABullet <$> prefixed '-' inlines <?> "bullet"
+parseBullet :: Parser AuthoredBlock
+parseBullet =
+  ABullet
+    <$> prefixed '-' parseInlines
+    <?> "parseBullet"
 
-quote :: Parser AuthoredBlock
-quote = AQuote <$> prefixed '>' inlines <?> "quote"
+parseQuote :: Parser AuthoredBlock
+parseQuote =
+  AQuote
+    <$> prefixed '>' parseInlines
+    <?> "parseQuote"
 
-tag :: Parser AuthoredBlock
-tag = ATag <$> prefixed '!' word <?> "tag"
+parseTag :: Parser AuthoredBlock
+parseTag =
+  ATag
+    <$> prefixed '!' word
+    <?> "parseTag"
 
-keyValue :: Parser AuthoredBlock
-keyValue = prefixed '!' inner <?> "keyValue"
+parseKeyValue :: Parser AuthoredBlock
+parseKeyValue = prefixed '!' inner <?> "parseKeyValue"
   where
     inner :: Parser AuthoredBlock
     inner = do
@@ -139,45 +152,56 @@ keyValue = prefixed '!' inner <?> "keyValue"
       value <- takeUntilEndOfLine
       return $ AKeyValue key value
 
-triple :: Parser AuthoredBlock
-triple = prefixed '&' inner <?> "triple"
+parseTriple :: Parser AuthoredBlock
+parseTriple = prefixed '&' inner <?> "triple"
   where
     inner :: Parser AuthoredBlock
-    inner = do
-      subject <- word
-      _ <- whitespace
-      predicate <- word
-      _ <- whitespace
-      object <- takeUntilEndOfLine
-      return $ ATriple subject predicate object
+    inner =
+      ATriple
+        <$> word
+        <* whitespace
+        <*> word
+        <* whitespace
+        <*> takeUntilEndOfLine
 
-nonABlankABlock :: Parser AuthoredBlock
-nonABlankABlock =
-  heading
-    <|> bullet
-    <|> quote
-    <|> keyValue
-    <|> tag
-    <|> triple
-    <|> paragraph
-    <?> "nonABlankABlock"
+-- inner = do
+--   subject <- word
+--   _ <- whitespace
+--   predicate <- word
+--   _ <- whitespace
+--   object <- takeUntilEndOfLine
+--   return $ ATriple subject predicate object
 
-nonABlankABlocks :: Parser AuthoredDocument
-nonABlankABlocks = many1 nonABlankABlock <?> "nonABlankABlocks"
+parseNonBlankABlock :: Parser AuthoredBlock
+parseNonBlankABlock =
+  parseHeading
+    <|> parseBullet
+    <|> parseQuote
+    <|> parseKeyValue
+    <|> parseTag
+    <|> parseTriple
+    <|> parseParagraph
+    <?> "parseNonBlankABlock"
+
+parseNonBlankABlocks :: Parser AuthoredDocument
+parseNonBlankABlocks = many1 parseNonBlankABlock <?> "parseNonBlankABlocks"
 
 ----------              ABlank ABlocks              ----------
 
-newLines :: Parser AuthoredDocument
-newLines =
+parseNewLines :: Parser AuthoredDocument
+parseNewLines =
   do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
     let len = length eols
     return $ replicate (len - 1) ABlank
-    <?> "newLines"
+    <?> "parseNewLines"
 
 ------------------------------------------------------------
 --                    AuthoredDocument Parsing                    --
 ------------------------------------------------------------
 
-document :: Parser AuthoredDocument
-document = concat <$> many1 (nonABlankABlocks <|> newLines) <?> "document"
+parseDocument :: Parser AuthoredDocument
+parseDocument =
+  concat
+    <$> many1 (parseNonBlankABlocks <|> parseNewLines)
+    <?> "parseDocument"

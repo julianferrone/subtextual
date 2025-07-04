@@ -52,7 +52,7 @@ subtextFilesInDir dir = do
 readSubtext :: FilePath -> IO (Either String (String, AuthoredDocument))
 readSubtext fp = do
   file <- readFileUtf8 fp
-  let result = parseOnly P.document file
+  let result = parseOnly P.parseDocument file
   case result of
     Left err -> return $ Left err
     Right doc' -> do

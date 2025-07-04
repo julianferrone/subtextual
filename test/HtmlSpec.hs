@@ -32,7 +32,7 @@ spec = do
       Html.renderABlock (AQuote [PlainText (T.pack "Test")])
         `shouldBe` T.pack "<blockquote><span>Test</span></blockquote>"
     it "renders a slashlink into HTML" $ do
-      Html.renderABlock (AParagraph [SlashLink (T.pack "test")])
+      Html.renderABlock (AParagraph [(SlashLink . documentName . T.pack) "test"])
         `shouldBe` T.pack "<p><a href=\"test\" class=\"slashlink\">test</a></p>"
     it "renders a tag into HTML" $ do
       Html.renderABlock (ATag (T.pack "ATag"))
@@ -64,7 +64,7 @@ spec = do
           ABlank,
           AParagraph
             [ PlainText (T.pack "Evolving systems exist in "),
-              SlashLink (T.pack "punctuated-equilibrium"),
+              (SlashLink . documentName . T.pack) "punctuated-equilibrium",
               PlainText (T.pack ".")
             ],
           ABlank,

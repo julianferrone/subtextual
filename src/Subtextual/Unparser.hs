@@ -7,7 +7,7 @@ inline :: Inline -> T.Text
 inline (PlainText p) = p
 inline (BareUrl url) = url
 inline (AngledUrl url) = T.pack "<" <> url <> T.pack ">"
-inline (SlashLink sl) = T.pack "/" <> sl
+inline (SlashLink (DocumentName dn)) = T.pack "/" <> dn
 
 inlines :: [Inline] -> T.Text
 inlines = mconcat . map inline

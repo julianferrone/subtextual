@@ -16,7 +16,7 @@ inline :: Inline -> Html ()
 inline (PlainText p) = (span_ . toHtml) p
 inline (BareUrl url) = a_ [href_ url] $ toHtml url
 inline (AngledUrl url) = a_ [href_ url] $ toHtml url
-inline (SlashLink sl) = a_ [href_ sl, class_ "slashlink"] $ toHtml sl
+inline (SlashLink (DocumentName dn)) = a_ [href_ dn, class_ "slashlink"] $ toHtml dn
 
 inlines :: [Inline] -> Html ()
 inlines = mconcat . map inline

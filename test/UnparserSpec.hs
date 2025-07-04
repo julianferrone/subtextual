@@ -19,7 +19,7 @@ spec = do
       Unparser.inline (AngledUrl (T.pack "doi:10.1000/100"))
         `shouldBe` T.pack "<doi:10.1000/100>"
     it "unparses a slashlink" $ do
-      Unparser.inline (SlashLink (T.pack "slash-link"))
+      Unparser.inline ((SlashLink . documentName . T.pack) "slash-link")
         `shouldBe` T.pack "/slash-link"
   describe "block" $ do
     it "unparses a paragraph" $ do
@@ -30,7 +30,7 @@ spec = do
               PlainText (T.pack ", and this is an angle URL: "),
               AngledUrl (T.pack "doi:10.1000/100"),
               PlainText (T.pack ", and this is a slashlink: "),
-              SlashLink (T.pack "slash-link")
+              (SlashLink . documentName . T.pack) "slash-link"
             ]
         )
         `shouldBe` T.pack "This is a HTTP URL: https://www.google.com, and this is an angle URL: <doi:10.1000/100>, and this is a slashlink: /slash-link"
@@ -41,7 +41,7 @@ spec = do
       Unparser.block
         ( ABullet
             [ PlainText (T.pack "Here's another slashlink: "),
-              SlashLink (T.pack "electric/boogaloo")
+              (SlashLink . documentName . T.pack) "electric/boogaloo"
             ]
         )
         `shouldBe` T.pack "- Here's another slashlink: /electric/boogaloo"
@@ -80,7 +80,7 @@ spec = do
           ABlank,
           AParagraph
             [ PlainText (T.pack "Evolving systems exist in "),
-              SlashLink (T.pack "punctuated-equilibrium"),
+              (SlashLink . documentName . T.pack) "punctuated-equilibrium",
               PlainText (T.pack ".")
             ],
           ABlank,
