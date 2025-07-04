@@ -40,6 +40,8 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -fdefer-typed-holes
+# - -Werror=typed-holes
 
 library:
   source-dirs: src
