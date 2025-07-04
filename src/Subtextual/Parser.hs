@@ -23,6 +23,12 @@ word = takeWhile1 (not . isSpace) <?> "word"
 --                     Inline Parsing                     --
 ------------------------------------------------------------
 
+parseDocumentName :: Parser DocumentName
+parseDocumentName = 
+  DocumentName 
+    <$> takeWhile1 isSlashLinkChar 
+    <?> "parseDocumentName"
+
 parsePlainText :: Parser Inline
 parsePlainText =
   PlainText
@@ -66,8 +72,8 @@ parseSlashLink :: Parser Inline
 parseSlashLink =
   do
     _ <- char '/'
-    link <- takeWhile1 isSlashLinkChar
-    return . SlashLink . DocumentName $ link
+    docName <- parseDocumentName
+    return . SlashLink $ docName
     <?> "parseSlashLink"
 
 parseInline :: Parser Inline
@@ -110,61 +116,61 @@ takeUntilEndOfLine =
   takeWhile1 (not . isEndOfLine)
     <?> "takeUntilEndOfLine"
 
-----------            Non-Blank ABlocks            ----------
+----------             Parsing Blocks             ----------
 
-parseParagraph :: Parser BlockOrRef
+parseParagraph :: Parser Block
 parseParagraph =
-  Left . Paragraph
+  Paragraph
     <$> parseInlines
     <?> "parseParagraph"
 
-parseHeading :: Parser BlockOrRef
+parseHeading :: Parser Block
 parseHeading =
-  Left . Heading
+  Heading
     <$> prefixed '#' takeUntilEndOfLine
     <?> "parseHeading"
 
-parseBullet :: Parser BlockOrRef
+parseBullet :: Parser Block
 parseBullet =
-  Left . Bullet
+  Bullet
     <$> prefixed '-' parseInlines
     <?> "parseBullet"
 
-parseQuote :: Parser BlockOrRef
+parseQuote :: Parser Block
 parseQuote =
-  Left . Quote
+  Quote
     <$> prefixed '>' parseInlines
     <?> "parseQuote"
 
-parseTag :: Parser BlockOrRef
+parseTag :: Parser Block
 parseTag =
-  Left . Tag
+  Tag
     <$> prefixed '!' word
     <?> "parseTag"
 
-parseKeyValue :: Parser BlockOrRef
+parseKeyValue :: Parser Block
 parseKeyValue = prefixed '!' inner <?> "parseKeyValue"
   where
-    inner :: Parser BlockOrRef
+    inner :: Parser Block
     inner = do
       key <- word
       _ <- whitespace
       value <- takeUntilEndOfLine
-      return . Left $ KeyValue key value
+      return $ KeyValue key value
 
-parseTriple :: Parser BlockOrRef
+parseTriple :: Parser Block
 parseTriple = prefixed '&' inner <?> "triple"
   where
-    inner :: Parser BlockOrRef
+    inner :: Parser Block
     inner = do
       subject <- word
       _ <- whitespace
       predicate <- word
       _ <- whitespace
       object <- takeUntilEndOfLine
-      return . Left $ Triple subject predicate object
+      return $ Triple subject predicate object
 
-parseNonBlankBlock :: Parser BlockOrRef
+parseNonBlankBlock :: Parser Block
 parseNonBlankBlock =
   parseHeading
     <|> parseBullet
@@ -175,12 +181,12 @@ parseNonBlankBlock =
     <|> parseParagraph
     <?> "parseNonBlankBlock"
 
-parseNonBlankBlocks :: Parser [BlockOrRef]
+parseNonBlankBlocks :: Parser [Block]
 parseNonBlankBlocks = many1 parseNonBlankBlock <?> "parseNonBlankABlocks"
 
-----------              Blank ABlocks              ----------
+----------          Parsing Blank Blocks          ----------
 
-parseNewLines :: Parser [BlockOrRef]
+parseNewLines :: Parser [Block]
 parseNewLines =
   do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
@@ -192,8 +198,15 @@ parseNewLines =
 --                    Document Parsing                    --
 ------------------------------------------------------------
 
-parseDocument :: Parser [BlockOrRef]
-parseDocument =
+
+
+parseBlockOrRefs :: Parser [BlockOrRef]
+parseBlockOrRefs =
   concat
-    <$> many1 (parseNonBlankBlocks <|> parseNewLines)
-    <?> "parseDocument"
+    <$> many1 (
+      Left 
+      <$> parseNonBlankBlocks 
+      <|> Left 
+      <$> parseNewLines
+      )
+    <?> "parseBlockOrRefs"
