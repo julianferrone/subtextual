@@ -29,6 +29,7 @@ library
       Subtextual.File
       Subtextual.Html
       Subtextual.Parser
+      Subtextual.Transclusion
       Subtextual.Unparser
   other-modules:
       Paths_subtextual

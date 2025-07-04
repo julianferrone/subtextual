@@ -6,15 +6,17 @@ module Subtextual.Core
     Inline (..),
     Block (..),
     Document,
+    Transclusion(..),
+    TransclusionOptions(..),
+    opts,
   )
 where
 
 import Data.Char (isAlpha, isDigit, isSpace)
-import qualified Data.Map as Map
 import qualified Data.Text as T
 
 newtype DocumentName = DocumentName T.Text
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 isSlashLinkChar :: Char -> Bool
 isSlashLinkChar c =
@@ -60,6 +62,9 @@ data Transclusion
   = Transclusion DocumentName TransclusionOptions
   deriving (Show, Eq)
 
+opts :: Transclusion -> TransclusionOptions
+opts (Transclusion _ options) = options
+
 ----------                 Blocks                 ----------
 
 data Block
@@ -74,18 +79,3 @@ data Block
   deriving (Show, Eq)
 
 type Document = [Block]
-
-------------------------------------------------------------
---                   Corpus of Documents                  --
-------------------------------------------------------------
-
-data Corpus
-  = Corpus
-      (Map DocumentName Document) -- The map of document names to documents
-      (Map DocumentName (Map String Document)) -- Map of document names to map of heading names to subsections
-
-resolveTransclusion :: Corpus -> Transclusion -> [Block]
-resolveTransclusion (Corpus docs _) (Transclusion name WholeDocument) = Map.lookup name
-
-resolveTransclusions :: Corpus -> [Either Block Transclusion] -> [Block]
-resolveTransclusions = fmap . either id . resolveTransclusion
