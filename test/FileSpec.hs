@@ -11,7 +11,7 @@ spec :: Spec
 spec = do
   around (withSystemTempDirectory "tmp") $ do
     describe "end to end" $ do
-      it "successfully writes a AuthoredDocument to a file and reads the same AuthoredDocument from the file" $ \dir -> do
+      it "successfully writes a AuthorDocument to a file and reads the same AuthorDocument from the file" $ \dir -> do
         let doc =
               [ AHeading (T.pack "Overview"),
                 ABlank,

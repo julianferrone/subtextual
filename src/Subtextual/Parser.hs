@@ -93,7 +93,7 @@ parseInlines =
     smoosh (i : todo) done = smoosh todo (i : done)
 
 ------------------------------------------------------------
---                      AuthoredBlock Parsing                     --
+--                      AuthorBlock Parsing                     --
 ------------------------------------------------------------
 
 ----------                 Helpers                ----------
@@ -112,50 +112,50 @@ takeUntilEndOfLine =
 
 ----------            Non-ABlank ABlocks            ----------
 
-parseParagraph :: Parser AuthoredBlock
+parseParagraph :: Parser AuthorBlock
 parseParagraph =
   AParagraph
     <$> parseInlines
     <?> "parseParagraph"
 
-parseHeading :: Parser AuthoredBlock
+parseHeading :: Parser AuthorBlock
 parseHeading =
   AHeading
     <$> prefixed '#' takeUntilEndOfLine
     <?> "parseHeading"
 
-parseBullet :: Parser AuthoredBlock
+parseBullet :: Parser AuthorBlock
 parseBullet =
   ABullet
     <$> prefixed '-' parseInlines
     <?> "parseBullet"
 
-parseQuote :: Parser AuthoredBlock
+parseQuote :: Parser AuthorBlock
 parseQuote =
   AQuote
     <$> prefixed '>' parseInlines
     <?> "parseQuote"
 
-parseTag :: Parser AuthoredBlock
+parseTag :: Parser AuthorBlock
 parseTag =
   ATag
     <$> prefixed '!' word
     <?> "parseTag"
 
-parseKeyValue :: Parser AuthoredBlock
+parseKeyValue :: Parser AuthorBlock
 parseKeyValue = prefixed '!' inner <?> "parseKeyValue"
   where
-    inner :: Parser AuthoredBlock
+    inner :: Parser AuthorBlock
     inner = do
       key <- word
       _ <- whitespace
       value <- takeUntilEndOfLine
       return $ AKeyValue key value
 
-parseTriple :: Parser AuthoredBlock
+parseTriple :: Parser AuthorBlock
 parseTriple = prefixed '&' inner <?> "triple"
   where
-    inner :: Parser AuthoredBlock
+    inner :: Parser AuthorBlock
     inner =
       ATriple
         <$> word
@@ -172,7 +172,7 @@ parseTriple = prefixed '&' inner <?> "triple"
 --   object <- takeUntilEndOfLine
 --   return $ ATriple subject predicate object
 
-parseNonBlankABlock :: Parser AuthoredBlock
+parseNonBlankABlock :: Parser AuthorBlock
 parseNonBlankABlock =
   parseHeading
     <|> parseBullet
@@ -183,12 +183,12 @@ parseNonBlankABlock =
     <|> parseParagraph
     <?> "parseNonBlankABlock"
 
-parseNonBlankABlocks :: Parser AuthoredDocument
+parseNonBlankABlocks :: Parser AuthorDocument
 parseNonBlankABlocks = many1 parseNonBlankABlock <?> "parseNonBlankABlocks"
 
 ----------              ABlank ABlocks              ----------
 
-parseNewLines :: Parser AuthoredDocument
+parseNewLines :: Parser AuthorDocument
 parseNewLines =
   do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
@@ -197,10 +197,10 @@ parseNewLines =
     <?> "parseNewLines"
 
 ------------------------------------------------------------
---                    AuthoredDocument Parsing                    --
+--                    AuthorDocument Parsing                    --
 ------------------------------------------------------------
 
-parseDocument :: Parser AuthoredDocument
+parseDocument :: Parser AuthorDocument
 parseDocument =
   concat
     <$> many1 (parseNonBlankABlocks <|> parseNewLines)

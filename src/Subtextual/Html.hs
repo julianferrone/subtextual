@@ -22,10 +22,10 @@ inlines :: [Inline] -> Html ()
 inlines = mconcat . map inline
 
 ------------------------------------------------------------
---                      AuthoredBlock to HTML                     --
+--                      AuthorBlock to HTML                     --
 ------------------------------------------------------------
 
-block :: AuthoredBlock -> Html ()
+block :: AuthorBlock -> Html ()
 block (AParagraph paragraph) = (p_ . inlines) paragraph
 block (AHeading heading) = (h2_ . toHtml) heading
 block (ABullet bullet) = (li_ . inlines) bullet
@@ -46,24 +46,24 @@ block (ATriple subject predicate object) =
     ]
 
 ------------------------------------------------------------
---                    AuthoredDocument to HTML                    --
+--                    AuthorDocument to HTML                    --
 ------------------------------------------------------------
 
 data Group a
   = Single a
   | ABullets [a]
 
-document :: AuthoredDocument -> Html ()
+document :: AuthorDocument -> Html ()
 document = mconcat . map groupHtml . group'
   where
-    groupHtml :: Group AuthoredBlock -> Html ()
+    groupHtml :: Group AuthorBlock -> Html ()
     groupHtml (Single b) = block b
     groupHtml (ABullets bs) = ul_ $ (mconcat . map block) bs
 
-    group' :: AuthoredDocument -> [Group AuthoredBlock]
+    group' :: AuthorDocument -> [Group AuthorBlock]
     group' doc = group doc []
 
-    group :: AuthoredDocument -> [Group AuthoredBlock] -> [Group AuthoredBlock]
+    group :: AuthorDocument -> [Group AuthorBlock] -> [Group AuthorBlock]
     group [] done = (reverse . map reverseGroup) done
     group (ABullet b : todo) (ABullets bs : done) = group todo $ ABullets (ABullet b : bs) : done
     group (ABullet b : todo) done = group todo $ ABullets [ABullet b] : done
@@ -75,8 +75,8 @@ document = mconcat . map groupHtml . group'
 
 ----------     Subtext to HTML-formatted Text     ----------
 
-renderABlock :: AuthoredBlock -> T.Text
+renderABlock :: AuthorBlock -> T.Text
 renderABlock = toStrict . renderText . block
 
-renderDoc :: AuthoredDocument -> T.Text
+renderDoc :: AuthorDocument -> T.Text
 renderDoc = toStrict . renderText . document

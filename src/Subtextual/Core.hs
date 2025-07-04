@@ -4,8 +4,8 @@ module Subtextual.Core
     DocumentName(..),
     isAngledUrlChar,
     Inline(..),
-    AuthoredBlock (..),
-    AuthoredDocument,
+    AuthorBlock (..),
+    AuthorDocument,
   )
 where
 
@@ -57,16 +57,16 @@ data TransclusionOptions
   deriving (Show, Eq)
 
 {-
-TODO: Specialise the `AuthoredBlock` type into `AuthoredBlock` and add a `ViewerBlock`
+TODO: Specialise the `AuthorBlock` type into `AuthorBlock` and add a `ViewerBlock`
 which represents the block after we fill out the transclusions in the document
 from the corpus.
 
-TODO: Add a `Corpus` type to represent a collection of `AuthoredDocument`s.
+TODO: Add a `Corpus` type to represent a collection of `AuthorDocument`s.
 -}
 
 ----------             Authored Blocks            ----------
 
-data AuthoredBlock
+data AuthorBlock
   = AParagraph [Inline]
   | AHeading T.Text
   | ABullet [Inline]
@@ -78,4 +78,6 @@ data AuthoredBlock
   | ABlank
   deriving (Show, Eq)
 
-type AuthoredDocument = [AuthoredBlock]
+type AuthorDocument = [AuthorBlock]
+
+----------              Reader Blocks             ----------
