@@ -16,22 +16,22 @@ spec = do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "Hello, world!")
-        $ Left . Paragraph $ [PlainText (T.pack "Hello, world!")]
+        $ Paragraph [PlainText (T.pack "Hello, world!")]
     it "parses a HTTP URL" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "http://www.google.com")
-        $ Left . Paragraph $ [BareUrl (T.pack "http://www.google.com")]
+        $ Paragraph [BareUrl (T.pack "http://www.google.com")]
     it "parses a HTTPS URL" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "https://www.google.com")
-        $ Left . Paragraph $ [BareUrl (T.pack "https://www.google.com")]
+        $ Paragraph [BareUrl (T.pack "https://www.google.com")]
     it "parses HTTP and angle-delimited URLs" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "This is a HTTP URL: https://www.google.com, and this is an angle URL: <doi:10.1000/100>")
-        $ Left . Paragraph $
+        $ Paragraph
             [ PlainText (T.pack "This is a HTTP URL: "),
               BareUrl (T.pack "https://www.google.com"),
               PlainText (T.pack ", and this is an angle URL: "),
@@ -41,62 +41,63 @@ spec = do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "# Header")
-        $ Left . Heading $ T.pack "Header"
+        $ Heading $ T.pack "Header"
     it "parses a bullet" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "- Bullet")
-        $ Left . Bullet $ [PlainText (T.pack "Bullet")]
+        $ Bullet [PlainText (T.pack "Bullet")]
     it "parses a quote" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "> Quote")
-        $ Left . Quote $ [PlainText (T.pack "Quote")]
+        $ Quote [PlainText (T.pack "Quote")]
     it "parses a slashlink" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "/foo/bar")
-        $ Left . Paragraph $ [(SlashLink . documentName . T.pack) "foo/bar"]
+        $ Paragraph [(SlashLink . documentName . T.pack) "foo/bar"]
     it "parses a tag" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "! Tag")
-        $ Left . Tag $ T.pack "Tag"
+        $ Tag . T.pack $ "Tag"
     it "parses a key value pair" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "! Key Value")
-        $ Left $ KeyValue (T.pack "Key") (T.pack "Value")
+        $ KeyValue (T.pack "Key") (T.pack "Value")
     it "parses a key value pair with spaces in the value" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "! Key Value 2")
-        $ Left $ KeyValue (T.pack "Key") (T.pack "Value 2")
+        $ KeyValue (T.pack "Key") (T.pack "Value 2")
     it "parses a subject object predicate" $ do
       shouldMatch
         Parser.parseNonBlankBlock
         (T.pack "& Subject Predicate Object")
-        $ Left $ Triple (T.pack "Subject") (T.pack "Predicate") (T.pack "Object")
+        $ Triple (T.pack "Subject") (T.pack "Predicate") (T.pack "Object")
+  describe "parseTransclusion" $ do
     it "parses a transclusion with the WholeDocument option" $ do
       shouldMatch
-        Parser.parseNonBlankBlock
+        Parser.parseTransclusion
         (T.pack "$ notes")
-        $ Right $ Transclusion ((documentName . T.pack) "notes") WholeDocument
+        $ Transclusion ((documentName . T.pack) "notes") WholeDocument
     it "parses a transclusion with the FirstLines option" $ do
       shouldMatch
-        Parser.parseNonBlankBlock
+        Parser.parseTransclusion
         (T.pack "$ notes | 5")
-        $ Right $ Transclusion ((documentName . T.pack) "notes") $ FirstLines 5
+        $ Transclusion ((documentName . T.pack) "notes") $ FirstLines 5
     it "parses a transclusion with the Lines option" $ do
       shouldMatch
-        Parser.parseNonBlankBlock
+        Parser.parseTransclusion
         (T.pack "$ notes | 5 10")
-        $ Right $ Transclusion ((documentName . T.pack) "notes") $ Lines 5 10
+        $ Transclusion ((documentName . T.pack) "notes") $ Lines 5 10
     it "parses a transclusion with the WholeDocument option" $ do
       shouldMatch
-        Parser.parseNonBlankBlock
+        Parser.parseTransclusion
         (T.pack "$ notes # heading 1")
-        $ Right $ Transclusion ((documentName . T.pack) "notes") $ HeadingSection $ T.pack "heading 1"
+        $ Transclusion ((documentName . T.pack) "notes") $ HeadingSection $ T.pack "heading 1"
   describe "document" $ do
     it "parses a whole document" $ do
       shouldMatch
