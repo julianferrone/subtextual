@@ -1,4 +1,4 @@
-module Subtextual.Parser (parseNonBlankBlock, parseBlockOrRefs) where
+module Subtextual.Parser (parseNonBlankBlock, parseTransclusion, parseBlockOrRefs) where
 
 import Control.Applicative
 import Control.Monad
@@ -115,6 +115,9 @@ takeUntilEndOfLine :: Parser T.Text
 takeUntilEndOfLine =
   takeWhile1 (not . isEndOfLine)
     <?> "takeUntilEndOfLine"
+
+skipToEndOfLine :: Parser ()
+skipToEndOfLine = skipWhile $ not . isEndOfLine
 
 ----------             Parsing Blocks             ----------
 
@@ -236,9 +239,9 @@ parseTransclusion = prefixed '$' inner <?> "parseTransclusion"
   where
     inner = do
       docName <- parseDocumentName
-      _ <- whitespace
+      _ <- skipSpace
       options <- parseTransclusionOptions
-      _ <- takeUntilEndOfLine
+      _ <- skipToEndOfLine
       return $ Transclusion docName options
 
 parseTransclusions :: Parser [BlockOrRef]
