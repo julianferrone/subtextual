@@ -1,15 +1,16 @@
 module Subtextual.Core
   ( documentName,
     isSlashLinkChar,
-    DocumentName(..),
+    DocumentName (..),
     isAngledUrlChar,
-    Inline(..),
-    AuthorBlock (..),
-    AuthorDocument,
+    Inline (..),
+    Block (..),
+    Document,
   )
 where
 
 import Data.Char (isAlpha, isDigit, isSpace)
+import qualified Data.Map as Map
 import qualified Data.Text as T
 
 newtype DocumentName = DocumentName T.Text
@@ -42,7 +43,6 @@ data Inline
 isAngledUrlChar :: Char -> Bool
 isAngledUrlChar c = not $ c == '<' || c == '>' || isSpace c
 
-
 ------------------------------------------------------------
 --                         Blocks                         --
 ------------------------------------------------------------
@@ -56,28 +56,17 @@ data TransclusionOptions
   | HeadingSection T.Text
   deriving (Show, Eq)
 
-{-
-TODO: Specialise the `AuthorBlock` type into `AuthorBlock` and add a `ViewerBlock`
-which represents the block after we fill out the transclusions in the document
-from the corpus.
+----------                 Blocks                 ----------
 
-TODO: Add a `Corpus` type to represent a collection of `AuthorDocument`s.
--}
-
-----------             Authored Blocks            ----------
-
-data AuthorBlock
-  = AParagraph [Inline]
-  | AHeading T.Text
-  | ABullet [Inline]
-  | AQuote [Inline]
-  | ATag T.Text
-  | AKeyValue T.Text T.Text
-  | ATriple T.Text T.Text T.Text
-  | ATransclusion TransclusionOptions
-  | ABlank
+data Block
+  = Paragraph [Inline]
+  | Heading T.Text
+  | Bullet [Inline]
+  | Quote [Inline]
+  | Tag T.Text
+  | KeyValue T.Text T.Text
+  | Triple T.Text T.Text T.Text
+  | Blank
   deriving (Show, Eq)
 
-type AuthorDocument = [AuthorBlock]
-
-----------              Reader Blocks             ----------
+type Document = [Block]

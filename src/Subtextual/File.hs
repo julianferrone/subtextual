@@ -15,7 +15,7 @@ import qualified Data.ByteString as B (readFile, writeFile)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E (decodeUtf8, encodeUtf8)
 import qualified Data.Text.IO as I
-import Subtextual.Core (AuthorDocument)
+import Subtextual.Core (Document)
 import qualified Subtextual.Html as H
 import qualified Subtextual.Parser as P
 import qualified Subtextual.Unparser as U
@@ -49,7 +49,7 @@ subtextFilesInDir dir = do
 --                  Reading Subtext Files                 --
 ------------------------------------------------------------
 
-readSubtext :: FilePath -> IO (Either String (String, AuthorDocument))
+readSubtext :: FilePath -> IO (Either String (String, Document))
 readSubtext fp = do
   file <- readFileUtf8 fp
   let result = parseOnly P.parseDocument file
@@ -59,7 +59,7 @@ readSubtext fp = do
       let docName = FP.takeBaseName fp
       return $ Right (docName, doc')
 
-readSubtexts :: FilePath -> IO [Either String (String, AuthorDocument)]
+readSubtexts :: FilePath -> IO [Either String (String, Document)]
 readSubtexts dir = do
   subtextFiles <- subtextFilesInDir dir
   mapM readSubtext subtextFiles
@@ -69,28 +69,28 @@ readSubtexts dir = do
 ------------------------------------------------------------
 
 write' ::
-  (AuthorDocument -> T.Text) -> -- Render the AuthorDocument as Text
-  FilePath -> -- Filepath to write the AuthorDocument to
-  AuthorDocument -> -- The AuthorDocument
+  (Document -> T.Text) -> -- Render the Document as Text
+  FilePath -> -- Filepath to write the Document to
+  Document -> -- The Document
   IO () -- Writing the file
 write' f fp doc = writeFileUtf8 fp $ f doc
 
 qualifyPath ::
   FilePath ->
-  (String, AuthorDocument) ->
-  (FilePath, AuthorDocument)
+  (String, Document) ->
+  (FilePath, Document)
 qualifyPath parentDir (name, doc) = (parentDir FP.</> name, doc)
 
 qualifyPaths ::
   FilePath -> -- The parent directory
-  [(String, AuthorDocument)] -> -- The named documents
-  [(FilePath, AuthorDocument)] -- The filepaths for the documents
+  [(String, Document)] -> -- The named documents
+  [(FilePath, Document)] -- The filepaths for the documents
 qualifyPaths parentDir = map (qualifyPath parentDir)
 
 writes' ::
-  (FilePath -> AuthorDocument -> IO ()) -> -- Write a AuthorDocument to a filepath
+  (FilePath -> Document -> IO ()) -> -- Write a Document to a filepath
   FilePath -> -- Filepath of the parent directory
-  [(String, AuthorDocument)] -> -- The list of named Documents
+  [(String, Document)] -> -- The list of named Documents
   IO () -- Writing the file
 writes' writeF parentDir namedDocs =
   mapM_
@@ -99,18 +99,18 @@ writes' writeF parentDir namedDocs =
 
 ----------                 Subtext                ----------
 
-writeSubtext :: FilePath -> AuthorDocument -> IO ()
+writeSubtext :: FilePath -> Document -> IO ()
 writeSubtext = write' U.document
 
-writeSubtexts :: FilePath -> [(String, AuthorDocument)] -> IO ()
+writeSubtexts :: FilePath -> [(String, Document)] -> IO ()
 writeSubtexts = writes' writeSubtext
 
 ----------                  HTML                  ----------
 
-writeHtml :: FilePath -> AuthorDocument -> IO ()
+writeHtml :: FilePath -> Document -> IO ()
 writeHtml = write' H.renderDoc
 
-writeHtmls :: FilePath -> [(String, AuthorDocument)] -> IO ()
+writeHtmls :: FilePath -> [(String, Document)] -> IO ()
 writeHtmls = writes' writeHtml
 
 ------------------------------------------------------------

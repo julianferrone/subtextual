@@ -22,23 +22,23 @@ inlines :: [Inline] -> Html ()
 inlines = mconcat . map inline
 
 ------------------------------------------------------------
---                      AuthorBlock to HTML                     --
+--                      Block to HTML                     --
 ------------------------------------------------------------
 
-block :: AuthorBlock -> Html ()
-block (AParagraph paragraph) = (p_ . inlines) paragraph
-block (AHeading heading) = (h2_ . toHtml) heading
-block (ABullet bullet) = (li_ . inlines) bullet
-block (AQuote quote) = (blockquote_ . inlines) quote
-block ABlank = mempty
-block (ATag tag) = (div_ [class_ "tag"] . toHtml) tag
-block (AKeyValue key value) =
+block :: Block -> Html ()
+block (Paragraph paragraph) = (p_ . inlines) paragraph
+block (Heading heading) = (h2_ . toHtml) heading
+block (Bullet bullet) = (li_ . inlines) bullet
+block (Quote quote) = (blockquote_ . inlines) quote
+block Blank = mempty
+block (Tag tag) = (div_ [class_ "tag"] . toHtml) tag
+block (KeyValue key value) =
   div_
     [class_ "keyvalue"]
     ( div_ [class_ "key"] (toHtml key)
         <> div_ [class_ "value"] (toHtml value)
     )
-block (ATriple subject predicate object) =
+block (Triple subject predicate object) =
   (div_ [class_ "triple"] . mconcat)
     [ div_ [class_ "subject"] (toHtml subject),
       div_ [class_ "predicate"] (toHtml predicate),
@@ -46,37 +46,37 @@ block (ATriple subject predicate object) =
     ]
 
 ------------------------------------------------------------
---                    AuthorDocument to HTML                    --
+--                    Document to HTML                    --
 ------------------------------------------------------------
 
 data Group a
   = Single a
-  | ABullets [a]
+  | Bullets [a]
 
-document :: AuthorDocument -> Html ()
+document :: Document -> Html ()
 document = mconcat . map groupHtml . group'
   where
-    groupHtml :: Group AuthorBlock -> Html ()
+    groupHtml :: Group Block -> Html ()
     groupHtml (Single b) = block b
-    groupHtml (ABullets bs) = ul_ $ (mconcat . map block) bs
+    groupHtml (Bullets bs) = ul_ $ (mconcat . map block) bs
 
-    group' :: AuthorDocument -> [Group AuthorBlock]
+    group' :: Document -> [Group Block]
     group' doc = group doc []
 
-    group :: AuthorDocument -> [Group AuthorBlock] -> [Group AuthorBlock]
+    group :: Document -> [Group Block] -> [Group Block]
     group [] done = (reverse . map reverseGroup) done
-    group (ABullet b : todo) (ABullets bs : done) = group todo $ ABullets (ABullet b : bs) : done
-    group (ABullet b : todo) done = group todo $ ABullets [ABullet b] : done
+    group (Bullet b : todo) (Bullets bs : done) = group todo $ Bullets (Bullet b : bs) : done
+    group (Bullet b : todo) done = group todo $ Bullets [Bullet b] : done
     group (b : todo) done = group todo $ Single b : done
 
     reverseGroup :: Group a -> Group a
     reverseGroup (Single s) = Single s
-    reverseGroup (ABullets bs) = ABullets $ reverse bs
+    reverseGroup (Bullets bs) = Bullets $ reverse bs
 
 ----------     Subtext to HTML-formatted Text     ----------
 
-renderABlock :: AuthorBlock -> T.Text
+renderABlock :: Block -> T.Text
 renderABlock = toStrict . renderText . block
 
-renderDoc :: AuthorDocument -> T.Text
+renderDoc :: Document -> T.Text
 renderDoc = toStrict . renderText . document

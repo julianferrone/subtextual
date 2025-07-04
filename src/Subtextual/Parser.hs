@@ -93,7 +93,7 @@ parseInlines =
     smoosh (i : todo) done = smoosh todo (i : done)
 
 ------------------------------------------------------------
---                      AuthorBlock Parsing                     --
+--                      Block Parsing                     --
 ------------------------------------------------------------
 
 ----------                 Helpers                ----------
@@ -110,54 +110,54 @@ takeUntilEndOfLine =
   takeWhile1 (not . isEndOfLine)
     <?> "takeUntilEndOfLine"
 
-----------            Non-ABlank ABlocks            ----------
+----------            Non-Blank ABlocks            ----------
 
-parseParagraph :: Parser AuthorBlock
+parseParagraph :: Parser Block
 parseParagraph =
-  AParagraph
+  Paragraph
     <$> parseInlines
     <?> "parseParagraph"
 
-parseHeading :: Parser AuthorBlock
+parseHeading :: Parser Block
 parseHeading =
-  AHeading
+  Heading
     <$> prefixed '#' takeUntilEndOfLine
     <?> "parseHeading"
 
-parseBullet :: Parser AuthorBlock
+parseBullet :: Parser Block
 parseBullet =
-  ABullet
+  Bullet
     <$> prefixed '-' parseInlines
     <?> "parseBullet"
 
-parseQuote :: Parser AuthorBlock
+parseQuote :: Parser Block
 parseQuote =
-  AQuote
+  Quote
     <$> prefixed '>' parseInlines
     <?> "parseQuote"
 
-parseTag :: Parser AuthorBlock
+parseTag :: Parser Block
 parseTag =
-  ATag
+  Tag
     <$> prefixed '!' word
     <?> "parseTag"
 
-parseKeyValue :: Parser AuthorBlock
+parseKeyValue :: Parser Block
 parseKeyValue = prefixed '!' inner <?> "parseKeyValue"
   where
-    inner :: Parser AuthorBlock
+    inner :: Parser Block
     inner = do
       key <- word
       _ <- whitespace
       value <- takeUntilEndOfLine
-      return $ AKeyValue key value
+      return $ KeyValue key value
 
-parseTriple :: Parser AuthorBlock
+parseTriple :: Parser Block
 parseTriple = prefixed '&' inner <?> "triple"
   where
-    inner :: Parser AuthorBlock
+    inner :: Parser Block
     inner =
-      ATriple
+      Triple
         <$> word
         <* whitespace
         <*> word
@@ -170,9 +170,9 @@ parseTriple = prefixed '&' inner <?> "triple"
 --   predicate <- word
 --   _ <- whitespace
 --   object <- takeUntilEndOfLine
---   return $ ATriple subject predicate object
+--   return $ Triple subject predicate object
 
-parseNonBlankABlock :: Parser AuthorBlock
+parseNonBlankABlock :: Parser Block
 parseNonBlankABlock =
   parseHeading
     <|> parseBullet
@@ -183,24 +183,24 @@ parseNonBlankABlock =
     <|> parseParagraph
     <?> "parseNonBlankABlock"
 
-parseNonBlankABlocks :: Parser AuthorDocument
+parseNonBlankABlocks :: Parser Document
 parseNonBlankABlocks = many1 parseNonBlankABlock <?> "parseNonBlankABlocks"
 
-----------              ABlank ABlocks              ----------
+----------              Blank ABlocks              ----------
 
-parseNewLines :: Parser AuthorDocument
+parseNewLines :: Parser Document
 parseNewLines =
   do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
     let len = length eols
-    return $ replicate (len - 1) ABlank
+    return $ replicate (len - 1) Blank
     <?> "parseNewLines"
 
 ------------------------------------------------------------
---                    AuthorDocument Parsing                    --
+--                    Document Parsing                    --
 ------------------------------------------------------------
 
-parseDocument :: Parser AuthorDocument
+parseDocument :: Parser Document
 parseDocument =
   concat
     <$> many1 (parseNonBlankABlocks <|> parseNewLines)
