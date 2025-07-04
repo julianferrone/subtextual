@@ -28,6 +28,7 @@ dependencies:
 - filepath
 - directory
 - string-interpolate
+- containers
 
 ghc-options:
 - -Wall
