@@ -85,3 +85,27 @@ type Document = [Block]
 
 type BlockOrRef = Either Block Transclusion
 
+{-
+ ┌───────────────────────────┐
+ │ Corpus                    │
+ │                           │
+ │ ┌───────────────────────┐ │
+ │ │ SubText File .subtext ◄─┼─────────┐
+ │ └───────────┬───────────┘ │         │
+ └┬────────────┼─────────────┘         │
+  │            ▼                       │
+  │         Parsing                Unparsing
+  │            │                       ▲
+  │            │                       │
+  │     ┌──────▼───────┐               │
+  │     │ [BlockOrRef] ├───────────────┘
+  │     └──────┬───────┘
+  │            │
+  │            ▼
+  └──►resolveTransclusions
+               │
+               │
+          ┌────▼─────┐
+          │ Document │
+          └──────────┘
+-}
