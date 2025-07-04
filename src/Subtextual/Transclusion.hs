@@ -47,10 +47,10 @@ resolveTransclusion corpus transclusion =
   (excerpt . opts) transclusion
     <$> lookupTransclusion transclusion corpus
 
-resolveToBlock :: Corpus -> Either Block Transclusion -> Maybe Document
-resolveToBlock _ (Left block) = Just [block]
+resolveToBlock :: Corpus -> BlockOrRef -> Maybe Document
+resolveToBlock _ (Left block) = (Just . singleton) block
 resolveToBlock corpus (Right transclusion) = resolveTransclusion corpus transclusion
 
 
-resolveTransclusions :: Corpus -> [Either Block Transclusion] -> Document
+resolveTransclusions :: Corpus -> [BlockOrRef] -> Document
 resolveTransclusions corpus = mconcat . mapMaybe (resolveToBlock corpus)

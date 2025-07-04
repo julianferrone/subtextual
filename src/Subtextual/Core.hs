@@ -6,8 +6,9 @@ module Subtextual.Core
     Inline (..),
     Block (..),
     Document,
-    Transclusion(..),
-    TransclusionOptions(..),
+    Transclusion (..),
+    TransclusionOptions (..),
+    BlockOrRef,
     opts,
   )
 where
@@ -79,3 +80,8 @@ data Block
   deriving (Show, Eq)
 
 type Document = [Block]
+
+----------          Blocks and References         ----------
+
+type BlockOrRef = Either Block Transclusion
+
