@@ -112,67 +112,59 @@ takeUntilEndOfLine =
 
 ----------            Non-Blank ABlocks            ----------
 
-parseParagraph :: Parser Block
+parseParagraph :: Parser BlockOrRef
 parseParagraph =
-  Paragraph
+  Left . Paragraph
     <$> parseInlines
     <?> "parseParagraph"
 
-parseHeading :: Parser Block
+parseHeading :: Parser BlockOrRef
 parseHeading =
-  Heading
+  Left . Heading
     <$> prefixed '#' takeUntilEndOfLine
     <?> "parseHeading"
 
-parseBullet :: Parser Block
+parseBullet :: Parser BlockOrRef
 parseBullet =
-  Bullet
+  Left . Bullet
     <$> prefixed '-' parseInlines
     <?> "parseBullet"
 
-parseQuote :: Parser Block
+parseQuote :: Parser BlockOrRef
 parseQuote =
-  Quote
+  Left . Quote
     <$> prefixed '>' parseInlines
     <?> "parseQuote"
 
-parseTag :: Parser Block
+parseTag :: Parser BlockOrRef
 parseTag =
-  Tag
+  Left . Tag
     <$> prefixed '!' word
     <?> "parseTag"
 
-parseKeyValue :: Parser Block
+parseKeyValue :: Parser BlockOrRef
 parseKeyValue = prefixed '!' inner <?> "parseKeyValue"
   where
-    inner :: Parser Block
+    inner :: Parser BlockOrRef
     inner = do
       key <- word
       _ <- whitespace
       value <- takeUntilEndOfLine
-      return $ KeyValue key value
+      return . Left $ KeyValue key value
 
-parseTriple :: Parser Block
+parseTriple :: Parser BlockOrRef
 parseTriple = prefixed '&' inner <?> "triple"
   where
-    inner :: Parser Block
-    inner =
-      Triple
-        <$> word
-        <* whitespace
-        <*> word
-        <* whitespace
-        <*> takeUntilEndOfLine
+    inner :: Parser BlockOrRef
+    inner = do
+      subject <- word
+      _ <- whitespace
+      predicate <- word
+      _ <- whitespace
+      object <- takeUntilEndOfLine
+      return . Left $ Triple subject predicate object
 
--- inner = do
---   subject <- word
---   _ <- whitespace
---   predicate <- word
---   _ <- whitespace
---   object <- takeUntilEndOfLine
---   return $ Triple subject predicate object
-
-parseNonBlankABlock :: Parser Block
+parseNonBlankABlock :: Parser BlockOrRef
 parseNonBlankABlock =
   parseHeading
     <|> parseBullet
@@ -183,24 +175,24 @@ parseNonBlankABlock =
     <|> parseParagraph
     <?> "parseNonBlankABlock"
 
-parseNonBlankABlocks :: Parser Document
+parseNonBlankABlocks :: Parser [BlockOrRef]
 parseNonBlankABlocks = many1 parseNonBlankABlock <?> "parseNonBlankABlocks"
 
 ----------              Blank ABlocks              ----------
 
-parseNewLines :: Parser Document
+parseNewLines :: Parser [BlockOrRef]
 parseNewLines =
   do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
     let len = length eols
-    return $ replicate (len - 1) Blank
+    return $ Left <$> replicate (len - 1) Blank
     <?> "parseNewLines"
 
 ------------------------------------------------------------
 --                    Document Parsing                    --
 ------------------------------------------------------------
 
-parseDocument :: Parser Document
+parseDocument :: Parser [BlockOrRef]
 parseDocument =
   concat
     <$> many1 (parseNonBlankABlocks <|> parseNewLines)
