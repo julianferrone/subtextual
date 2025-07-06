@@ -59,8 +59,21 @@ isSlashLinkChar c =
     || c == '/'
 
 ------------------------------------------------------------
---                         Blocks                         --
+--                    Lines in Document                   --
 ------------------------------------------------------------
+
+----------             Content Blocks             ----------
+
+data Block
+  = Paragraph [Inline]
+  | Heading T.Text
+  | Bullet [Inline]
+  | Quote [Inline]
+  | Tag T.Text
+  | KeyValue T.Text T.Text
+  | Triple T.Text T.Text T.Text
+  | Blank
+  deriving (Show, Eq)
 
 ----------              Transclusion              ----------
 
@@ -83,18 +96,6 @@ data TransclusionOptions
   | HeadingSection T.Text
   deriving (Show, Eq)
 
-----------                 Blocks                 ----------
-
-data Block
-  = Paragraph [Inline]
-  | Heading T.Text
-  | Bullet [Inline]
-  | Quote [Inline]
-  | Tag T.Text
-  | KeyValue T.Text T.Text
-  | Triple T.Text T.Text T.Text
-  | Blank
-  deriving (Show, Eq)
 
 ----------          Blocks and References         ----------
 
