@@ -25,7 +25,7 @@ word = takeWhile1 (not . isSpace) <?> "word"
 
 parseDocumentName :: Parser DocumentName
 parseDocumentName = 
-  DocumentName 
+  documentName 
     <$> takeWhile1 isSlashLinkChar 
     <?> "parseDocumentName"
 

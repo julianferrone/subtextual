@@ -1,27 +1,54 @@
 module Subtextual.Core
-  ( documentName,
-    isSlashLinkChar,
-    DocumentName (..),
-    isAngledUrlChar,
-    Inline (..),
+  ( Document,
+    document,
+    title,
+    content,
+    DocumentName,
+    documentName,
+    unDocumentName,
     Block (..),
-    Transclusion (..),
-    TransclusionOptions (..),
-    Authored(..),
+    Authored (..),
     authored,
     catToResolve,
-    Readable(..),
+    Readable (..),
     readable,
     opts,
     target,
+    Inline (..),
+    isSlashLinkChar,
+    isAngledUrlChar,
+    Transclusion (..),
+    TransclusionOptions (..),
   )
 where
 
 import Data.Char (isAlpha, isDigit, isSpace)
 import qualified Data.Text as T
 
-newtype DocumentName = DocumentName T.Text
+------------------------------------------------------------
+--                        Documents                       --
+------------------------------------------------------------
+
+data Document a = Document DocumentName [a]
+
+document :: DocumentName -> [a] -> Document a
+document = Document
+
+title :: Document a -> DocumentName
+title (Document t _) = t
+
+content :: Document a -> [a]
+content (Document _ c) = c
+
+------------------------------------------------------------
+--                     Document Names                     --
+------------------------------------------------------------
+
+newtype DocumentName = DocumentName {unDocumentName :: T.Text}
   deriving (Show, Eq, Ord)
+
+documentName :: T.Text -> DocumentName
+documentName = DocumentName . T.filter isSlashLinkChar
 
 isSlashLinkChar :: Char -> Bool
 isSlashLinkChar c =
@@ -31,37 +58,11 @@ isSlashLinkChar c =
     || c == '_'
     || c == '/'
 
-documentName :: T.Text -> DocumentName
-documentName = DocumentName . T.filter isSlashLinkChar
-
-------------------------------------------------------------
---                     Inline Elements                    --
-------------------------------------------------------------
-
-data Inline
-  = PlainText T.Text
-  | BareUrl T.Text
-  | AngledUrl T.Text
-  | SlashLink DocumentName
-  deriving (Show, Eq)
-
-----------              Constructors              ----------
-
-isAngledUrlChar :: Char -> Bool
-isAngledUrlChar c = not $ c == '<' || c == '>' || isSpace c
-
 ------------------------------------------------------------
 --                         Blocks                         --
 ------------------------------------------------------------
 
 ----------              Transclusion              ----------
-
-data TransclusionOptions
-  = WholeDocument
-  | FirstLines Int
-  | Lines Int Int
-  | HeadingSection T.Text
-  deriving (Show, Eq)
 
 data Transclusion
   = Transclusion DocumentName TransclusionOptions
@@ -72,6 +73,15 @@ target (Transclusion name _) = name
 
 opts :: Transclusion -> TransclusionOptions
 opts (Transclusion _ options) = options
+
+----------          Transclusion Options          ----------
+
+data TransclusionOptions
+  = WholeDocument
+  | FirstLines Int
+  | Lines Int Int
+  | HeadingSection T.Text
+  deriving (Show, Eq)
 
 ----------                 Blocks                 ----------
 
@@ -90,7 +100,7 @@ data Block
 
 data Authored
   = Raw Block
-  | ToResolve Transclusion 
+  | ToResolve Transclusion
   deriving (Show, Eq)
 
 authored :: (Block -> a) -> (Transclusion -> a) -> Authored -> a
@@ -133,3 +143,19 @@ readable _ g (TransclusionMissing y) = g y
          │ [Readable] │
          └────────────┘
 -}
+
+------------------------------------------------------------
+--                     Inline Elements                    --
+------------------------------------------------------------
+
+data Inline
+  = PlainText T.Text
+  | BareUrl T.Text
+  | AngledUrl T.Text
+  | SlashLink DocumentName
+  deriving (Show, Eq)
+
+----------              Constructors              ----------
+
+isAngledUrlChar :: Char -> Bool
+isAngledUrlChar c = not $ c == '<' || c == '>' || isSpace c

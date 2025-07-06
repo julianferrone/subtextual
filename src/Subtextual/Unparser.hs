@@ -4,14 +4,11 @@ import Data.Maybe
 import qualified Data.Text as T
 import Subtextual.Core
 
-unparseDocumentName :: DocumentName -> T.Text
-unparseDocumentName (DocumentName docName) = docName
-
 unparseInline :: Inline -> T.Text
 unparseInline (PlainText p) = p
 unparseInline (BareUrl url) = url
 unparseInline (AngledUrl url) = T.pack "<" <> url <> T.pack ">"
-unparseInline (SlashLink docName) = T.pack "/" <> unparseDocumentName docName
+unparseInline (SlashLink docName) = T.pack "/" <> unDocumentName docName
 
 unparseInlines :: [Inline] -> T.Text
 unparseInlines = mconcat . map unparseInline
@@ -53,7 +50,7 @@ unparseTransclusion :: Transclusion -> T.Text
 unparseTransclusion (Transclusion name options) =
   spaced $
     [ T.pack "$",
-      unparseDocumentName name
+      unDocumentName name
     ]
       <> unparseTransclusionOptions options
 

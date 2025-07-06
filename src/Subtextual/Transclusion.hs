@@ -56,3 +56,10 @@ resolveToBlock corpus (ToResolve transclusion) =
 
 resolveTransclusions :: Corpus -> [Authored] -> [Readable]
 resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
+
+------------------------------------------------------------
+--                  Transclusion Ordering                 --
+------------------------------------------------------------
+
+referenced :: DocumentName -> [Authored] -> (DocumentName, [DocumentName])
+referenced name doc = (name, target <$> catToResolve doc)
