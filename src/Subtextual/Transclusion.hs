@@ -1,9 +1,9 @@
 module Subtextual.Transclusion (Corpus) where
 
+import qualified Data.Graph as Graph
 import Data.List
 import qualified Data.Map as Map
 import Data.Maybe (mapMaybe)
-import qualified Data.Graph as G
 import qualified Data.Text as T
 import Subtextual.Core
 
@@ -49,7 +49,7 @@ resolveTransclusion corpus transclusion =
 
 resolveToBlock :: Corpus -> Authored -> [Readable]
 resolveToBlock _ (Raw block) = singleton . Present $ block
-resolveToBlock corpus (ToResolve transclusion) = 
+resolveToBlock corpus (ToResolve transclusion) =
   case resolveTransclusion corpus transclusion of
     Just blocks -> Present <$> blocks
     Nothing -> singleton . TransclusionMissing . target $ transclusion
@@ -61,5 +61,17 @@ resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
 --                  Transclusion Ordering                 --
 ------------------------------------------------------------
 
-referenced :: DocumentName -> [Authored] -> (DocumentName, [DocumentName])
-referenced name doc = (name, target <$> catToResolve doc)
+referencedDocs :: Document Authored -> Document DocumentName
+referencedDocs = liftD (fmap target . catToResolve)
+
+-- This is just to prepare for constructing a graph
+docGraphNode :: Document DocumentName -> (DocumentName, DocumentName, [DocumentName])
+docGraphNode doc = (title doc, title doc, content doc)
+
+docReferencesGraph ::
+  [Document DocumentName] ->
+  ( Graph.Graph,
+    Graph.Vertex -> (DocumentName, DocumentName, [DocumentName]),
+    DocumentName -> Maybe Graph.Vertex
+  )
+docReferencesGraph = Graph.graphFromEdges . fmap docGraphNode
