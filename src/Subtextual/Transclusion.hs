@@ -83,12 +83,15 @@ docReferencesGraph = Graph.graphFromEdges . fmap docGraphNode
 
 cycles :: Graph.Graph -> [[Graph.Tree Graph.Vertex]]
 cycles =
-  filter (not . null)          -- Multiple nodes in SCC = nonempty list
+  filter (not . null) -- Multiple nodes in SCC = nonempty list
     . fmap Tree.subForest -- If there's only 1 node in a strongly connected
-                          -- component, there's no cycle. If there's multiple
-                          -- nodes, those will show up as children of the first
-                          -- node
+    -- component, there's no cycle. If there's multiple
+    -- nodes, those will show up as children of the first
+    -- node
     . Graph.scc
 
 isCyclic :: Graph.Graph -> Bool
 isCyclic = null . cycles
+
+sortDag :: Graph.Graph -> Maybe [Graph.Vertex]
+sortDag g = if isCyclic g then Nothing else Just . Graph.topSort $ g
