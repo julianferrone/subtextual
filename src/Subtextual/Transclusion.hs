@@ -95,3 +95,22 @@ isCyclic = null . cycles
 
 sortDag :: Graph.Graph -> Maybe [Graph.Vertex]
 sortDag g = if isCyclic g then Nothing else Just . Graph.topSort $ g
+
+sortedDocReferencesGraph ::
+  [Document DocumentName] ->
+  Maybe
+    ( Graph.Graph,
+      Graph.Vertex -> (DocumentName, DocumentName, [DocumentName]),
+      DocumentName -> Maybe Graph.Vertex
+    )
+sortedDocReferencesGraph docs = sorted
+  where
+    ( graph,
+      nodeLookup,
+      vertexLookup
+      ) = docReferencesGraph docs
+
+    sorted =
+      if isCyclic graph
+        then Nothing
+        else Just (graph, nodeLookup, vertexLookup)
