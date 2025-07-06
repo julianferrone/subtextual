@@ -3,6 +3,7 @@ module Subtextual.Core
     document,
     title,
     content,
+    liftD,
     DocumentName,
     documentName,
     unDocumentName,
@@ -39,6 +40,12 @@ title (Document t _) = t
 
 content :: Document a -> [a]
 content (Document _ c) = c
+
+instance Functor Document where
+  fmap f (Document name xs) = Document name $ fmap f xs
+
+liftD :: ([a] -> [b]) -> Document a -> Document b
+liftD f (Document name xs) = Document name $ f xs
 
 ------------------------------------------------------------
 --                     Document Names                     --
