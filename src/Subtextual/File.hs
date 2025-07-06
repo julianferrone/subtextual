@@ -5,7 +5,6 @@ module Subtextual.File
     readSubtexts,
     writeSubtext,
     writeSubtexts,
-    transcribeSubtextToHtml,
     transcribeSubtextDirToHtml,
   )
 where
@@ -15,7 +14,7 @@ import qualified Data.ByteString as B (readFile, writeFile)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E (decodeUtf8, encodeUtf8)
 import qualified Data.Text.IO as I
-import Subtextual.Core (BlockOrRef, Document)
+import Subtextual.Core (Authored, Document)
 import qualified Subtextual.Html as H
 import qualified Subtextual.Parser as P
 import qualified Subtextual.Unparser as U
@@ -49,17 +48,17 @@ subtextFilesInDir dir = do
 --                  Reading Subtext Files                 --
 ------------------------------------------------------------
 
-readSubtext :: FilePath -> IO (Either String (String, [BlockOrRef]))
+readSubtext :: FilePath -> IO (Either String (String, [Authored]))
 readSubtext fp = do
   file <- readFileUtf8 fp
-  let result = parseOnly P.parseBlockOrRefs file
+  let result = parseOnly P.parseAuthoreds file
   case result of
     Left err -> return $ Left err
     Right doc' -> do
       let docName = FP.takeBaseName fp
       return $ Right (docName, doc')
 
-readSubtexts :: FilePath -> IO [Either String (String, [BlockOrRef])]
+readSubtexts :: FilePath -> IO [Either String (String, [Authored])]
 readSubtexts dir = do
   subtextFiles <- subtextFilesInDir dir
   mapM readSubtext subtextFiles
@@ -99,10 +98,10 @@ writes' writeF parentDir namedDocs =
 
 ----------                 Subtext                ----------
 
-writeSubtext :: FilePath -> [BlockOrRef] -> IO ()
-writeSubtext = write' U.unparseBlockOrRefs
+writeSubtext :: FilePath -> [Authored] -> IO ()
+writeSubtext = write' U.unparseAuthoreds
 
-writeSubtexts :: FilePath -> [(String, [BlockOrRef])] -> IO ()
+writeSubtexts :: FilePath -> [(String, [Authored])] -> IO ()
 writeSubtexts = writes' writeSubtext
 
 ----------                  HTML                  ----------
@@ -124,16 +123,6 @@ document at a time, as it might contain a transclusion reference.
 
 Instead we'll only allow operating on entire corpuses at once.
 -}
-
-transcribeSubtextToHtml :: FilePath -> FilePath -> IO (Either String ())
-transcribeSubtextToHtml = _
--- transcribeSubtextToHtml src dst = do
---   subtext <- readSubtext src
---   case subtext of
---     Left err -> return (Left err)
---     Right (_, doc) -> do
---       _ <- writeHtml dst doc
---       return (Right ())
 
 transcribeSubtextDirToHtml :: FilePath -> FilePath -> IO [Either String ()]
 transcribeSubtextDirToHtml = _

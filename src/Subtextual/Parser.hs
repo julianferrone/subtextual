@@ -1,4 +1,4 @@
-module Subtextual.Parser (parseNonBlankBlock, parseTransclusion, parseBlockOrRefs) where
+module Subtextual.Parser (parseNonBlankBlock, parseTransclusion, parseAuthoreds) where
 
 import Control.Applicative
 import Control.Monad
@@ -184,17 +184,17 @@ parseNonBlankBlock =
     <|> parseParagraph
     <?> "parseNonBlankBlock"
 
-parseNonBlankBlocks :: Parser [BlockOrRef]
-parseNonBlankBlocks = many1 (Left <$> parseNonBlankBlock) <?> "parseNonBlankBlocks"
+parseNonBlankBlocks :: Parser [Authored]
+parseNonBlankBlocks = many1 (Raw <$> parseNonBlankBlock) <?> "parseNonBlankBlocks"
 
 ----------          Parsing Blank Blocks          ----------
 
-parseNewLines :: Parser [BlockOrRef]
+parseNewLines :: Parser [Authored]
 parseNewLines =
   do
     eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
     let len = length eols
-    return $ Left <$> replicate (len - 1) Blank
+    return $ Raw <$> replicate (len - 1) Blank
     <?> "parseNewLines"
 
 ----------          Parsing Transclusions         ----------
@@ -244,19 +244,19 @@ parseTransclusion = prefixed '$' inner <?> "parseTransclusion"
       _ <- skipToEndOfLine
       return $ Transclusion docName options
 
-parseTransclusions :: Parser [BlockOrRef]
-parseTransclusions = many1 (Right <$> parseTransclusion) <?> "parseTransclusions"
+parseTransclusions :: Parser [Authored]
+parseTransclusions = many1 (ToResolve <$> parseTransclusion) <?> "parseTransclusions"
 
 ------------------------------------------------------------
 --                    Document Parsing                    --
 ------------------------------------------------------------
 
-parseBlockOrRefs :: Parser [BlockOrRef]
-parseBlockOrRefs =
+parseAuthoreds :: Parser [Authored]
+parseAuthoreds =
   concat
     <$> many1 (
         parseTransclusions
         <|> parseNonBlankBlocks
         <|> parseNewLines
       )
-    <?> "parseBlockOrRefs"
+    <?> "parseAuthoreds"

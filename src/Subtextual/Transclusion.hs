@@ -1,11 +1,10 @@
 module Subtextual.Transclusion (Corpus) where
 
-import Subtextual.Core
-
 import Data.List
 import qualified Data.Map as Map
-import qualified Data.Text as T
 import Data.Maybe (mapMaybe)
+import qualified Data.Text as T
+import Subtextual.Core
 
 ------------------------------------------------------------
 --                   Corpus of Documents                  --
@@ -27,8 +26,8 @@ lookupDocumentSections name = Map.lookup name . corpusDocumentSections
 
 lookupTransclusion :: Transclusion -> Corpus -> Maybe Document
 lookupTransclusion (Transclusion name (HeadingSection section)) corpus =
-   lookupDocumentSections name corpus
-   >>= Map.lookup section
+  lookupDocumentSections name corpus
+    >>= Map.lookup section
 lookupTransclusion (Transclusion name _) corpus = lookupWholeDocument name corpus
 
 ----------        Excerpting from Documents       ----------
@@ -47,10 +46,12 @@ resolveTransclusion corpus transclusion =
   (excerpt . opts) transclusion
     <$> lookupTransclusion transclusion corpus
 
-resolveToBlock :: Corpus -> BlockOrRef -> Maybe Document
-resolveToBlock _ (Left block) = (Just . singleton) block
-resolveToBlock corpus (Right transclusion) = resolveTransclusion corpus transclusion
+resolveToBlock :: Corpus -> Authored -> [Readable]
+resolveToBlock _ (Raw block) = singleton . Present $ block
+resolveToBlock corpus (ToResolve transclusion) = 
+  case resolveTransclusion corpus transclusion of
+    Just blocks -> Present <$> blocks
+    Nothing -> singleton . TransclusionMissing . target $ transclusion
 
-
-resolveTransclusions :: Corpus -> [BlockOrRef] -> Document
-resolveTransclusions corpus = mconcat . mapMaybe (resolveToBlock corpus)
+resolveTransclusions :: Corpus -> [Authored] -> [Readable]
+resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)

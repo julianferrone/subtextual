@@ -8,8 +8,12 @@ module Subtextual.Core
     Document,
     Transclusion (..),
     TransclusionOptions (..),
-    BlockOrRef,
+    Authored(..),
+    authored,
+    Readable(..),
+    readable,
     opts,
+    target,
   )
 where
 
@@ -63,6 +67,9 @@ data Transclusion
   = Transclusion DocumentName TransclusionOptions
   deriving (Show, Eq)
 
+target :: Transclusion -> DocumentName
+target (Transclusion name _) = name
+
 opts :: Transclusion -> TransclusionOptions
 opts (Transclusion _ options) = options
 
@@ -83,7 +90,23 @@ type Document = [Block]
 
 ----------          Blocks and References         ----------
 
-type BlockOrRef = Either Block Transclusion
+data Authored
+  = Raw Block
+  | ToResolve Transclusion 
+  deriving (Show, Eq)
+
+authored :: (Block -> a) -> (Transclusion -> a) -> Authored -> a
+authored f _ (Raw x) = f x
+authored _ g (ToResolve y) = g y
+
+data Readable
+  = Present Block
+  | TransclusionMissing DocumentName
+  deriving (Show, Eq)
+
+readable :: (Block -> a) -> (DocumentName -> a) -> Readable -> a
+readable f _ (Present x) = f x
+readable _ g (TransclusionMissing y) = g y
 
 {-
  ┌───────────────────────────┐
@@ -98,7 +121,7 @@ type BlockOrRef = Either Block Transclusion
   │            │                       ▲
   │            │                       │
   │     ┌──────▼───────┐               │
-  │     │ [BlockOrRef] ├───────────────┘
+  │     │  [Authored]  ├───────────────┘
   │     └──────┬───────┘
   │            │
   │            ▼

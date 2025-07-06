@@ -1,4 +1,4 @@
-module Subtextual.Unparser (unparseInline, unparseBlock, unparseBlockOrRefs) where
+module Subtextual.Unparser (unparseInline, unparseBlock, unparseAuthoreds) where
 
 import Data.Maybe
 import qualified Data.Text as T
@@ -57,10 +57,10 @@ unparseTransclusion (Transclusion name options) =
     ]
       <> unparseTransclusionOptions options
 
-unparseBlockOrRef :: BlockOrRef -> T.Text
-unparseBlockOrRef = either unparseBlock unparseTransclusion
+unparseAuthored :: Authored -> T.Text
+unparseAuthored = authored unparseBlock unparseTransclusion
 
 ----------          Unparsing Collections         ----------
 
-unparseBlockOrRefs :: [BlockOrRef] -> T.Text
-unparseBlockOrRefs = T.intercalate (T.pack "\n") . map unparseBlockOrRef
+unparseAuthoreds :: [Authored] -> T.Text
+unparseAuthoreds = T.intercalate (T.pack "\n") . map unparseAuthored

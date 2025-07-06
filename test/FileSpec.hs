@@ -13,7 +13,7 @@ spec = do
     describe "end to end" $ do
       it "successfully writes a Document to a file and reads the same Document from the file" $ \dir -> do
         let doc =
-              Left <$> [ Heading (T.pack "Overview"),
+              Raw <$> [ Heading (T.pack "Overview"),
                 Blank,
                 Paragraph [PlainText (T.pack "Evolution is a behavior that emerges in any system with:")],
                 Blank,

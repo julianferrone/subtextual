@@ -21,3 +21,8 @@ A value is composed of any number of characters, including whitespace.
 Triple blocks start with `&`. The three parts of a triple---subject, predicate, and object---are delimited by spaces. 
 
 The object is composed of any number of characters, including whitespace.
+
+### Transclusion blocks
+
+Transclusion blocks start with `$`.
+
