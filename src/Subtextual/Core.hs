@@ -12,7 +12,7 @@ module Subtextual.Core
     authored,
     catToResolve,
     Resolved (..),
-    Resolved,
+    resolved,
     opts,
     target,
     Inline (..),
@@ -123,15 +123,15 @@ data Resolved
   | HeadingMissing DocumentName T.Text
   deriving (Show, Eq)
 
-readable ::
+resolved ::
   (Block -> a) ->
   (DocumentName -> a) ->
   (DocumentName -> T.Text -> a) ->
   Resolved ->
   a
-readable f _ _ (Present block) = f block
-readable _ g _ (TransclusionMissing docName) = g docName
-readable _ _ h (HeadingMissing docName headingName) = h docName headingName
+resolved f _ _ (Present block) = f block
+resolved _ g _ (TransclusionMissing docName) = g docName
+resolved _ _ h (HeadingMissing docName headingName) = h docName headingName
 {-
  ┌───────────────────────────┐
  │ Corpus                    │
