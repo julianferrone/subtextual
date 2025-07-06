@@ -3,6 +3,7 @@ module Subtextual.Transclusion (Corpus) where
 import Data.List
 import qualified Data.Map as Map
 import Data.Maybe (mapMaybe)
+import qualified Data.Graph as G
 import qualified Data.Text as T
 import Subtextual.Core
 
@@ -12,19 +13,19 @@ import Subtextual.Core
 
 data Corpus
   = Corpus
-  { corpusDocuments :: Map.Map DocumentName Document,
-    corpusDocumentSections :: Map.Map DocumentName (Map.Map T.Text Document)
+  { corpusDocuments :: Map.Map DocumentName [Block],
+    corpusDocumentSections :: Map.Map DocumentName (Map.Map T.Text [Block])
   }
 
 ----------          Looking up Documents          ----------
 
-lookupWholeDocument :: DocumentName -> Corpus -> Maybe Document
+lookupWholeDocument :: DocumentName -> Corpus -> Maybe [Block]
 lookupWholeDocument name = Map.lookup name . corpusDocuments
 
-lookupDocumentSections :: DocumentName -> Corpus -> Maybe (Map.Map T.Text Document)
+lookupDocumentSections :: DocumentName -> Corpus -> Maybe (Map.Map T.Text [Block])
 lookupDocumentSections name = Map.lookup name . corpusDocumentSections
 
-lookupTransclusion :: Transclusion -> Corpus -> Maybe Document
+lookupTransclusion :: Transclusion -> Corpus -> Maybe [Block]
 lookupTransclusion (Transclusion name (HeadingSection section)) corpus =
   lookupDocumentSections name corpus
     >>= Map.lookup section
@@ -32,7 +33,7 @@ lookupTransclusion (Transclusion name _) corpus = lookupWholeDocument name corpu
 
 ----------        Excerpting from Documents       ----------
 
-excerpt :: TransclusionOptions -> Document -> Document
+excerpt :: TransclusionOptions -> [Block] -> [Block]
 excerpt WholeDocument = id
 excerpt (FirstLines length) = take length
 excerpt (Lines start length) = take length . drop start
@@ -41,7 +42,7 @@ excerpt (Lines start length) = take length . drop start
 -- pre-analysed
 excerpt (HeadingSection headingName) = id
 
-resolveTransclusion :: Corpus -> Transclusion -> Maybe Document
+resolveTransclusion :: Corpus -> Transclusion -> Maybe [Block]
 resolveTransclusion corpus transclusion =
   (excerpt . opts) transclusion
     <$> lookupTransclusion transclusion corpus

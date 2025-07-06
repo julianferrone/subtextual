@@ -5,11 +5,11 @@ module Subtextual.Core
     isAngledUrlChar,
     Inline (..),
     Block (..),
-    Document,
     Transclusion (..),
     TransclusionOptions (..),
     Authored(..),
     authored,
+    catToResolve,
     Readable(..),
     readable,
     opts,
@@ -86,8 +86,6 @@ data Block
   | Blank
   deriving (Show, Eq)
 
-type Document = [Block]
-
 ----------          Blocks and References         ----------
 
 data Authored
@@ -98,6 +96,9 @@ data Authored
 authored :: (Block -> a) -> (Transclusion -> a) -> Authored -> a
 authored f _ (Raw x) = f x
 authored _ g (ToResolve y) = g y
+
+catToResolve :: [Authored] -> [Transclusion]
+catToResolve as = [t | ToResolve t <- as]
 
 data Readable
   = Present Block
@@ -128,7 +129,7 @@ readable _ g (TransclusionMissing y) = g y
   └──►resolveTransclusions
                │
                │
-          ┌────▼─────┐
-          │ Document │
-          └──────────┘
+         ┌─────▼──────┐
+         │ [Readable] │
+         └────────────┘
 -}

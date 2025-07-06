@@ -14,7 +14,7 @@ import qualified Data.ByteString as B (readFile, writeFile)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E (decodeUtf8, encodeUtf8)
 import qualified Data.Text.IO as I
-import Subtextual.Core (Authored, Document)
+import Subtextual.Core (Authored, Block)
 import qualified Subtextual.Html as H
 import qualified Subtextual.Parser as P
 import qualified Subtextual.Unparser as U
@@ -106,10 +106,10 @@ writeSubtexts = writes' writeSubtext
 
 ----------                  HTML                  ----------
 
-writeHtml :: FilePath -> Document -> IO ()
+writeHtml :: FilePath -> [Block] -> IO ()
 writeHtml = write' H.renderDoc
 
-writeHtmls :: FilePath -> [(String, Document)] -> IO ()
+writeHtmls :: FilePath -> [(String, [Block])] -> IO ()
 writeHtmls = writes' writeHtml
 
 ------------------------------------------------------------

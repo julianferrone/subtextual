@@ -53,17 +53,17 @@ data Group a
   = Single a
   | Bullets [a]
 
-documentHtml :: Document -> Html ()
+documentHtml :: [Block] -> Html ()
 documentHtml = mconcat . map groupHtml . group'
   where
     groupHtml :: Group Block -> Html ()
     groupHtml (Single b) = blockHtml b
     groupHtml (Bullets bs) = ul_ $ (mconcat . map blockHtml) bs
 
-    group' :: Document -> [Group Block]
+    group' :: [Block] -> [Group Block]
     group' doc = group doc []
 
-    group :: Document -> [Group Block] -> [Group Block]
+    group :: [Block] -> [Group Block] -> [Group Block]
     group [] done = (reverse . map reverseGroup) done
     group (Bullet b : todo) (Bullets bs : done) = group todo $ Bullets (Bullet b : bs) : done
     group (Bullet b : todo) done = group todo $ Bullets [Bullet b] : done
@@ -78,5 +78,5 @@ documentHtml = mconcat . map groupHtml . group'
 renderBlock :: Block -> T.Text
 renderBlock = toStrict . renderText . blockHtml
 
-renderDoc :: Document -> T.Text
+renderDoc :: [Block] -> T.Text
 renderDoc = toStrict . renderText . documentHtml
