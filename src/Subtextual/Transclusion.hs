@@ -5,6 +5,7 @@ import Data.List
 import qualified Data.Map as Map
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
+import qualified Data.Tree as Tree
 import Subtextual.Core
 
 ------------------------------------------------------------
@@ -61,6 +62,8 @@ resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
 --                  Transclusion Ordering                 --
 ------------------------------------------------------------
 
+----------           Graph Construction           ----------
+
 referencedDocs :: Document Authored -> Document DocumentName
 referencedDocs = liftD (fmap target . catToResolve)
 
@@ -75,3 +78,17 @@ docReferencesGraph ::
     DocumentName -> Maybe Graph.Vertex
   )
 docReferencesGraph = Graph.graphFromEdges . fmap docGraphNode
+
+----------        Check if Graph is Cyclic        ----------
+
+cycles :: Graph.Graph -> [[Graph.Tree Graph.Vertex]]
+cycles =
+  filter (not . null)          -- Multiple nodes in SCC = nonempty list
+    . fmap Tree.subForest -- If there's only 1 node in a strongly connected
+                          -- component, there's no cycle. If there's multiple
+                          -- nodes, those will show up as children of the first
+                          -- node
+    . Graph.scc
+
+isCyclic :: Graph.Graph -> Bool
+isCyclic = null . cycles
