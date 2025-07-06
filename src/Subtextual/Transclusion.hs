@@ -48,14 +48,14 @@ resolveTransclusion corpus transclusion =
   (excerpt . opts) transclusion
     <$> lookupTransclusion transclusion corpus
 
-resolveToBlock :: Corpus -> Authored -> [Readable]
+resolveToBlock :: Corpus -> Authored -> [Resolved]
 resolveToBlock _ (Raw block) = singleton . Present $ block
 resolveToBlock corpus (ToResolve transclusion) =
   case resolveTransclusion corpus transclusion of
     Just blocks -> Present <$> blocks
     Nothing -> singleton . TransclusionMissing . target $ transclusion
 
-resolveTransclusions :: Corpus -> [Authored] -> [Readable]
+resolveTransclusions :: Corpus -> [Authored] -> [Resolved]
 resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
 
 ------------------------------------------------------------

@@ -11,8 +11,8 @@ module Subtextual.Core
     Authored (..),
     authored,
     catToResolve,
-    Readable (..),
-    readable,
+    Resolved (..),
+    Resolved,
     opts,
     target,
     Inline (..),
@@ -103,7 +103,6 @@ data TransclusionOptions
   | HeadingSection T.Text
   deriving (Show, Eq)
 
-
 ----------          Blocks and References         ----------
 
 data Authored
@@ -118,15 +117,21 @@ authored _ g (ToResolve y) = g y
 catToResolve :: [Authored] -> [Transclusion]
 catToResolve as = [t | ToResolve t <- as]
 
-data Readable
+data Resolved
   = Present Block
   | TransclusionMissing DocumentName
+  | HeadingMissing DocumentName T.Text
   deriving (Show, Eq)
 
-readable :: (Block -> a) -> (DocumentName -> a) -> Readable -> a
-readable f _ (Present x) = f x
-readable _ g (TransclusionMissing y) = g y
-
+readable ::
+  (Block -> a) ->
+  (DocumentName -> a) ->
+  (DocumentName -> T.Text -> a) ->
+  Resolved ->
+  a
+readable f _ _ (Present block) = f block
+readable _ g _ (TransclusionMissing docName) = g docName
+readable _ _ h (HeadingMissing docName headingName) = h docName headingName
 {-
  ┌───────────────────────────┐
  │ Corpus                    │
@@ -148,7 +153,7 @@ readable _ g (TransclusionMissing y) = g y
                │
                │
          ┌─────▼──────┐
-         │ [Readable] │
+         │ [Resolved] │
          └────────────┘
 -}
 
