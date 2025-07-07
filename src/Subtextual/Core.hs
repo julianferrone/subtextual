@@ -119,8 +119,8 @@ catToResolve as = [t | ToResolve t <- as]
 
 data Resolved
   = Present Block
-  | TransclusionMissing DocumentName
-  | HeadingMissing DocumentName T.Text
+  | ResourceNotFound DocumentName
+  | HeadingNotFound DocumentName T.Text
   deriving (Show, Eq)
 
 resolved ::
@@ -130,8 +130,12 @@ resolved ::
   Resolved ->
   a
 resolved f _ _ (Present block) = f block
-resolved _ g _ (TransclusionMissing docName) = g docName
-resolved _ _ h (HeadingMissing docName headingName) = h docName headingName
+resolved _ g _ (ResourceNotFound docName) = g docName
+resolved _ _ h (HeadingNotFound docName headingName) = h docName headingName
+
+resolveAuthored :: (Transclusion -> Resolved) -> Authored -> Resolved
+resolveAuthored = authored Present
+
 {-
  ┌───────────────────────────┐
  │ Corpus                    │

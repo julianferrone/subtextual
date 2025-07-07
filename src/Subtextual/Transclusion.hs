@@ -53,7 +53,7 @@ resolveToBlock _ (Raw block) = singleton . Present $ block
 resolveToBlock corpus (ToResolve transclusion) =
   case resolveTransclusion corpus transclusion of
     Just blocks -> Present <$> blocks
-    Nothing -> singleton . TransclusionMissing . target $ transclusion
+    Nothing -> singleton . ResourceNotFound . target $ transclusion
 
 resolveTransclusions :: Corpus -> [Authored] -> [Resolved]
 resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
