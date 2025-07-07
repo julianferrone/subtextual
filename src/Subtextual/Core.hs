@@ -23,8 +23,8 @@ module Subtextual.Core
   )
 where
 
-import Data.Char (isAlpha, isDigit, isSpace)
-import qualified Data.Text as T
+import qualified Data.Char as Char
+import qualified Data.Text as Text
 
 ------------------------------------------------------------
 --                        Documents                       --
@@ -51,16 +51,16 @@ liftD f (Document name xs) = Document name $ f xs
 --                     Document Names                     --
 ------------------------------------------------------------
 
-newtype DocumentName = DocumentName {unDocumentName :: T.Text}
+newtype DocumentName = DocumentName {unDocumentName :: Text.Text}
   deriving (Show, Eq, Ord)
 
-documentName :: T.Text -> DocumentName
-documentName = DocumentName . T.filter isSlashLinkChar
+documentName :: Text.Text -> DocumentName
+documentName = DocumentName . Text.filter isSlashLinkChar
 
 isSlashLinkChar :: Char -> Bool
 isSlashLinkChar c =
-  isAlpha c
-    || isDigit c
+  Char.isAlpha c
+    || Char.isDigit c
     || c == '-'
     || c == '_'
     || c == '/'
@@ -73,12 +73,12 @@ isSlashLinkChar c =
 
 data Block
   = Paragraph [Inline]
-  | Heading T.Text
+  | Heading Text.Text
   | Bullet [Inline]
   | Quote [Inline]
-  | Tag T.Text
-  | KeyValue T.Text T.Text
-  | Triple T.Text T.Text T.Text
+  | Tag Text.Text
+  | KeyValue Text.Text Text.Text
+  | Triple Text.Text Text.Text Text.Text
   | Blank
   deriving (Show, Eq)
 
@@ -100,7 +100,7 @@ data TransclusionOptions
   = WholeDocument
   | FirstLines Int
   | Lines Int Int
-  | HeadingSection T.Text
+  | HeadingSection Text.Text
   deriving (Show, Eq)
 
 ----------          Blocks and References         ----------
@@ -120,13 +120,13 @@ catToResolve as = [t | ToResolve t <- as]
 data Resolved
   = Present Block
   | ResourceNotFound DocumentName
-  | HeadingNotFound DocumentName T.Text
+  | HeadingNotFound DocumentName Text.Text
   deriving (Show, Eq)
 
 resolved ::
   (Block -> a) ->
   (DocumentName -> a) ->
-  (DocumentName -> T.Text -> a) ->
+  (DocumentName -> Text.Text -> a) ->
   Resolved ->
   a
 resolved f _ _ (Present block) = f block
@@ -166,13 +166,13 @@ resolveAuthored = authored Present
 ------------------------------------------------------------
 
 data Inline
-  = PlainText T.Text
-  | BareUrl T.Text
-  | AngledUrl T.Text
+  = PlainText Text.Text
+  | BareUrl Text.Text
+  | AngledUrl Text.Text
   | SlashLink DocumentName
   deriving (Show, Eq)
 
 ----------              Constructors              ----------
 
 isAngledUrlChar :: Char -> Bool
-isAngledUrlChar c = not $ c == '<' || c == '>' || isSpace c
+isAngledUrlChar c = not $ c == '<' || c == '>' || Char.isSpace c

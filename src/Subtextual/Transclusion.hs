@@ -1,12 +1,12 @@
-module Subtextual.Transclusion (Corpus) where
+module Subtextual.Core.Transclusion (Corpus) where
 
 import qualified Data.Graph as Graph
 import Data.List
 import qualified Data.Map as Map
 import Data.Maybe (mapMaybe)
-import qualified Data.Text as T
+import qualified Data.Text as Text
 import qualified Data.Tree as Tree
-import Subtextual.Core
+import qualified Subtextual.Core as Core
 
 ------------------------------------------------------------
 --                   Corpus of Documents                  --
@@ -14,68 +14,68 @@ import Subtextual.Core
 
 data Corpus
   = Corpus
-  { corpusDocuments :: Map.Map DocumentName [Block],
-    corpusDocumentSections :: Map.Map DocumentName (Map.Map T.Text [Block])
+  { corpusDocuments :: Map.Map Core.DocumentName [Core.Block],
+    corpusDocumentSections :: Map.Map Core.DocumentName (Map.Map Text.Text [Core.Block])
   }
 
 ----------          Looking up Documents          ----------
 
-lookupWholeDocument :: DocumentName -> Corpus -> Maybe [Block]
+lookupWholeDocument :: Core.DocumentName -> Corpus -> Maybe [Core.Block]
 lookupWholeDocument name = Map.lookup name . corpusDocuments
 
-lookupDocumentSections :: DocumentName -> Corpus -> Maybe (Map.Map T.Text [Block])
+lookupDocumentSections :: Core.DocumentName -> Corpus -> Maybe (Map.Map Text.Text [Core.Block])
 lookupDocumentSections name = Map.lookup name . corpusDocumentSections
 
-lookupTransclusion :: Transclusion -> Corpus -> Maybe [Block]
-lookupTransclusion (Transclusion name (HeadingSection section)) corpus =
+lookupTransclusion :: Core.Transclusion -> Corpus -> Maybe [Core.Block]
+lookupTransclusion (Core.Transclusion name (Core.HeadingSection section)) corpus =
   lookupDocumentSections name corpus
     >>= Map.lookup section
-lookupTransclusion (Transclusion name _) corpus = lookupWholeDocument name corpus
+lookupTransclusion (Core.Transclusion name _) corpus = lookupWholeDocument name corpus
 
 ----------        Excerpting from Documents       ----------
 
-excerpt :: TransclusionOptions -> [Block] -> [Block]
-excerpt WholeDocument = id
-excerpt (FirstLines length) = take length
-excerpt (Lines start length) = take length . drop start
+excerpt :: Core.TransclusionOptions -> [Core.Block] -> [Core.Block]
+excerpt Core.WholeDocument = id
+excerpt (Core.FirstLines length) = take length
+excerpt (Core.Lines start length) = take length . drop start
 -- The reason this is left as `id` is because we should be grabbing the
 -- heading section direct from the Corpus, which will have the sections
 -- pre-analysed
-excerpt (HeadingSection headingName) = id
+excerpt (Core.HeadingSection headingName) = id
 
-resolveTransclusion :: Corpus -> Transclusion -> Maybe [Block]
+resolveTransclusion :: Corpus -> Core.Transclusion -> Maybe [Core.Block]
 resolveTransclusion corpus transclusion =
-  (excerpt . opts) transclusion
+  (excerpt . Core.opts) transclusion
     <$> lookupTransclusion transclusion corpus
 
-resolveToBlock :: Corpus -> Authored -> [Resolved]
-resolveToBlock _ (Raw block) = singleton . Present $ block
-resolveToBlock corpus (ToResolve transclusion) =
+resolveToBlock :: Corpus -> Core.Authored -> [Core.Resolved]
+resolveToBlock _ (Core.Raw block) = singleton . Core.Present $ block
+resolveToBlock corpus (Core.ToResolve transclusion) =
   case resolveTransclusion corpus transclusion of
-    Just blocks -> Present <$> blocks
-    Nothing -> singleton . ResourceNotFound . target $ transclusion
+    Just blocks -> Core.Present <$> blocks
+    Nothing -> singleton . Core.ResourceNotFound . Core.target $ transclusion
 
-resolveTransclusions :: Corpus -> [Authored] -> [Resolved]
+resolveTransclusions :: Corpus -> [Core.Authored] -> [Core.Resolved]
 resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
 
 ------------------------------------------------------------
---                  Transclusion Ordering                 --
+--                  Core.Transclusion Ordering                 --
 ------------------------------------------------------------
 
 ----------           Graph Construction           ----------
 
-referencedDocs :: Document Authored -> Document DocumentName
-referencedDocs = liftD (fmap target . catToResolve)
+referencedDocs :: Core.Document Core.Authored -> Core.Document Core.DocumentName
+referencedDocs = Core.liftD (fmap Core.target . Core.catToResolve)
 
 -- This is just to prepare for constructing a graph
-docGraphNode :: Document DocumentName -> (DocumentName, DocumentName, [DocumentName])
-docGraphNode doc = (title doc, title doc, content doc)
+docGraphNode :: Core.Document Core.DocumentName -> (Core.DocumentName, Core.DocumentName, [Core.DocumentName])
+docGraphNode doc = (Core.title doc, Core.title doc, Core.content doc)
 
 docReferencesGraph ::
-  [Document DocumentName] ->
+  [Core.Document Core.DocumentName] ->
   ( Graph.Graph,
-    Graph.Vertex -> (DocumentName, DocumentName, [DocumentName]),
-    DocumentName -> Maybe Graph.Vertex
+    Graph.Vertex -> (Core.DocumentName, Core.DocumentName, [Core.DocumentName]),
+    Core.DocumentName -> Maybe Graph.Vertex
   )
 docReferencesGraph = Graph.graphFromEdges . fmap docGraphNode
 
@@ -97,11 +97,11 @@ sortDag :: Graph.Graph -> Maybe [Graph.Vertex]
 sortDag g = if isCyclic g then Nothing else Just . Graph.topSort $ g
 
 sortedDocReferencesGraph ::
-  [Document DocumentName] ->
+  [Core.Document Core.DocumentName] ->
   Maybe
     ( Graph.Graph,
-      Graph.Vertex -> (DocumentName, DocumentName, [DocumentName]),
-      DocumentName -> Maybe Graph.Vertex
+      Graph.Vertex -> (Core.DocumentName, Core.DocumentName, [Core.DocumentName]),
+      Core.DocumentName -> Maybe Graph.Vertex
     )
 sortedDocReferencesGraph docs = sorted
   where

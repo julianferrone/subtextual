@@ -1,82 +1,82 @@
 module Subtextual.Parser (parseNonBlankBlock, parseTransclusion, parseAuthoreds) where
 
-import Control.Applicative
+import Control.Applicative (Alternative ((<|>)))
 import Control.Monad
 import Data.Attoparsec.Combinator
-import Data.Attoparsec.Text
-import Data.Char (isSpace)
-import Data.Functor
-import qualified Data.Text as T
-import Subtextual.Core
+import qualified Data.Attoparsec.Text as Attoparsec
+import qualified Data.Char as Char
+import Data.Functor (($>))
+import qualified Data.Text as Text
+import qualified Subtextual.Core as Core
 
 ------------------------------------------------------------
 --                      Text Parsing                      --
 ------------------------------------------------------------
 
-whitespace :: Parser T.Text
-whitespace = takeWhile1 isHorizontalSpace <?> "whitespace"
+whitespace :: Attoparsec.Parser Text.Text
+whitespace = Attoparsec.takeWhile1 Attoparsec.isHorizontalSpace <?> "whitespace"
 
-word :: Parser T.Text
-word = takeWhile1 (not . isSpace) <?> "word"
+word :: Attoparsec.Parser Text.Text
+word = Attoparsec.takeWhile1 (not . Char.isSpace) <?> "word"
 
 ------------------------------------------------------------
 --                     Inline Parsing                     --
 ------------------------------------------------------------
 
-parseDocumentName :: Parser DocumentName
-parseDocumentName = 
-  documentName 
-    <$> takeWhile1 isSlashLinkChar 
+parseDocumentName :: Attoparsec.Parser Core.DocumentName
+parseDocumentName =
+  Core.documentName
+    <$> Attoparsec.takeWhile1 Core.isSlashLinkChar
     <?> "parseDocumentName"
 
-parsePlainText :: Parser Inline
+parsePlainText :: Attoparsec.Parser Core.Inline
 parsePlainText =
-  PlainText
+  Core.PlainText
     <$> (word <|> whitespace)
     <?> "parsePlainText"
 
-string' :: String -> Parser T.Text
-string' = string . T.pack
+string' :: String -> Attoparsec.Parser Text.Text
+string' = Attoparsec.string . Text.pack
 
-parseBareUrl :: Parser Inline
+parseBareUrl :: Attoparsec.Parser Core.Inline
 parseBareUrl =
   do
     schema <- string' "https://" <|> string' "http://"
-    body <- manyTill anyChar $ lookAhead endOfUrl
-    let url = schema <> T.pack body
-    return $ BareUrl url
+    body <- manyTill Attoparsec.anyChar $ lookAhead endOfUrl
+    let url = schema <> Text.pack body
+    return $ Core.BareUrl url
     <?> "parseBareUrl"
   where
-    endOfUrl :: Parser ()
+    endOfUrl :: Attoparsec.Parser ()
     endOfUrl =
       punctuationBoundary
-        <|> space $> ()
+        <|> Attoparsec.space $> ()
         <|> endOfInput
 
-    punctuationBoundary :: Parser ()
+    punctuationBoundary :: Attoparsec.Parser ()
     punctuationBoundary = do
-      _ <- char '.' <|> char ';' <|> char ','
-      _ <- skip isSpace <|> endOfLine
+      _ <- Attoparsec.char '.' <|> Attoparsec.char ';' <|> Attoparsec.char ','
+      _ <- Attoparsec.skip Char.isSpace <|> Attoparsec.endOfLine
       return ()
 
-parseAngledUrl :: Parser Inline
+parseAngledUrl :: Attoparsec.Parser Core.Inline
 parseAngledUrl =
   do
     _ <- string' "<"
-    url <- takeWhile1 isAngledUrlChar
+    url <- Attoparsec.takeWhile1 Core.isAngledUrlChar
     _ <- string' ">"
-    return $ AngledUrl url
+    return $ Core.AngledUrl url
     <?> "parseAngledUrl"
 
-parseSlashLink :: Parser Inline
+parseSlashLink :: Attoparsec.Parser Core.Inline
 parseSlashLink =
   do
-    _ <- char '/'
+    _ <- Attoparsec.char '/'
     docName <- parseDocumentName
-    return . SlashLink $ docName
+    return . Core.SlashLink $ docName
     <?> "parseSlashLink"
 
-parseInline :: Parser Inline
+parseInline :: Attoparsec.Parser Core.Inline
 parseInline =
   parseBareUrl
     <|> parseAngledUrl
@@ -84,7 +84,7 @@ parseInline =
     <|> parsePlainText
     <?> "parseInline"
 
-parseInlines :: Parser [Inline]
+parseInlines :: Attoparsec.Parser [Core.Inline]
 parseInlines =
   do
     parsed <- many1 parseInline
@@ -92,10 +92,10 @@ parseInlines =
     return parsed'
     <?> "parseInlines"
   where
-    smoosh :: [Inline] -> [Inline] -> [Inline]
+    smoosh :: [Core.Inline] -> [Core.Inline] -> [Core.Inline]
     smoosh [] finished = reverse finished
-    smoosh (PlainText p : todo) (PlainText p' : done) =
-      smoosh todo $ PlainText (p' <> p) : done
+    smoosh (Core.PlainText p : todo) (Core.PlainText p' : done) =
+      smoosh todo $ Core.PlainText (p' <> p) : done
     smoosh (i : todo) done = smoosh todo (i : done)
 
 ------------------------------------------------------------
@@ -104,76 +104,76 @@ parseInlines =
 
 ----------                 Helpers                ----------
 
-prefixed :: Char -> Parser a -> Parser a
+prefixed :: Char -> Attoparsec.Parser a -> Attoparsec.Parser a
 prefixed c parser =
-  char c
-    *> skipSpace
+  Attoparsec.char c
+    *> Attoparsec.skipSpace
     *> parser
     <?> "prefixed"
 
-takeUntilEndOfLine :: Parser T.Text
+takeUntilEndOfLine :: Attoparsec.Parser Text.Text
 takeUntilEndOfLine =
-  takeWhile1 (not . isEndOfLine)
+  Attoparsec.takeWhile1 (not . Attoparsec.isEndOfLine)
     <?> "takeUntilEndOfLine"
 
-skipToEndOfLine :: Parser ()
-skipToEndOfLine = skipWhile $ not . isEndOfLine
+skipToEndOfLine :: Attoparsec.Parser ()
+skipToEndOfLine =  Attoparsec.skipWhile $ not . Attoparsec.isEndOfLine
 
 ----------             Parsing Blocks             ----------
 
-parseParagraph :: Parser Block
+parseParagraph :: Attoparsec.Parser Core.Block
 parseParagraph =
-  Paragraph
+  Core.Paragraph
     <$> parseInlines
     <?> "parseParagraph"
 
-parseHeading :: Parser Block
+parseHeading :: Attoparsec.Parser Core.Block
 parseHeading =
-  Heading
+  Core.Heading
     <$> prefixed '#' takeUntilEndOfLine
     <?> "parseHeading"
 
-parseBullet :: Parser Block
+parseBullet :: Attoparsec.Parser Core.Block
 parseBullet =
-  Bullet
+  Core.Bullet
     <$> prefixed '-' parseInlines
     <?> "parseBullet"
 
-parseQuote :: Parser Block
+parseQuote :: Attoparsec.Parser Core.Block
 parseQuote =
-  Quote
+  Core.Quote
     <$> prefixed '>' parseInlines
     <?> "parseQuote"
 
-parseTag :: Parser Block
+parseTag :: Attoparsec.Parser Core.Block
 parseTag =
-  Tag
+  Core.Tag
     <$> prefixed '!' word
     <?> "parseTag"
 
-parseKeyValue :: Parser Block
+parseKeyValue :: Attoparsec.Parser Core.Block
 parseKeyValue = prefixed '!' inner <?> "parseKeyValue"
   where
-    inner :: Parser Block
+    inner :: Attoparsec.Parser Core.Block
     inner = do
       key <- word
       _ <- whitespace
       value <- takeUntilEndOfLine
-      return $ KeyValue key value
+      return $ Core.KeyValue key value
 
-parseTriple :: Parser Block
+parseTriple :: Attoparsec.Parser Core.Block
 parseTriple = prefixed '&' inner <?> "triple"
   where
-    inner :: Parser Block
+    inner :: Attoparsec.Parser Core.Block
     inner = do
       subject <- word
       _ <- whitespace
       predicate <- word
       _ <- whitespace
       object <- takeUntilEndOfLine
-      return $ Triple subject predicate object
+      return $ Core.Triple subject predicate object
 
-parseNonBlankBlock :: Parser Block
+parseNonBlankBlock :: Attoparsec.Parser Core.Block
 parseNonBlankBlock =
   parseHeading
     <|> parseBullet
@@ -184,79 +184,80 @@ parseNonBlankBlock =
     <|> parseParagraph
     <?> "parseNonBlankBlock"
 
-parseNonBlankBlocks :: Parser [Authored]
-parseNonBlankBlocks = many1 (Raw <$> parseNonBlankBlock) <?> "parseNonBlankBlocks"
+parseNonBlankBlocks :: Attoparsec.Parser [Core.Authored]
+parseNonBlankBlocks = many1 (Core.Raw <$> parseNonBlankBlock) <?> "parseNonBlankBlocks"
 
 ----------          Parsing Blank Blocks          ----------
 
-parseNewLines :: Parser [Authored]
+parseNewLines :: Attoparsec.Parser [Core.Authored]
 parseNewLines =
   do
-    eols <- many1 (Data.Attoparsec.Text.takeWhile isHorizontalSpace *> endOfLine)
+    eols <- many1 (Attoparsec.takeWhile Attoparsec.isHorizontalSpace *> Attoparsec.endOfLine)
     let len = length eols
-    return $ Raw <$> replicate (len - 1) Blank
+    return $ Core.Raw <$> replicate (len - 1) Core.Blank
     <?> "parseNewLines"
 
 ----------          Parsing Transclusions         ----------
 
-parseWholeDocument :: Parser TransclusionOptions
-parseWholeDocument = do
-  _ <- skipSpace
-  return WholeDocument
-  <?> "parseWholeDocument"
+parseWholeDocument :: Attoparsec.Parser Core.TransclusionOptions
+parseWholeDocument =
+  do
+    _ <- Attoparsec.skipSpace
+    return Core.WholeDocument
+    <?> "parseWholeDocument"
 
-parseFirstLines :: Parser TransclusionOptions
-parseFirstLines = 
-  FirstLines
-  <$> prefixed '|' decimal
-  <?> "parseFirstLines"
+parseFirstLines :: Attoparsec.Parser Core.TransclusionOptions
+parseFirstLines =
+  Core.FirstLines
+    <$> prefixed '|' Attoparsec.decimal
+    <?> "parseFirstLines"
 
-parseLines :: Parser TransclusionOptions
+parseLines :: Attoparsec.Parser Core.TransclusionOptions
 parseLines = prefixed '|' inner <?> "parseLines"
   where
     inner = do
-      start <- decimal 
-      _ <- skipSpace 
-      length <- decimal
-      return $ Lines start length
+      start <- Attoparsec.decimal
+      _ <- Attoparsec.skipSpace
+      length <- Attoparsec.decimal
+      return $ Core.Lines start length
 
-parseHeadingSection :: Parser TransclusionOptions
-parseHeadingSection = 
-  HeadingSection 
-  <$> prefixed '#' takeUntilEndOfLine
-  <?> "parseHeadingSection"
+parseHeadingSection :: Attoparsec.Parser Core.TransclusionOptions
+parseHeadingSection =
+  Core.HeadingSection
+    <$> prefixed '#' takeUntilEndOfLine
+    <?> "parseHeadingSection"
 
-parseTransclusionOptions :: Parser TransclusionOptions
+parseTransclusionOptions :: Attoparsec.Parser Core.TransclusionOptions
 parseTransclusionOptions =
   parseLines
-  <|> parseFirstLines
-  <|> parseHeadingSection
-  <|> parseWholeDocument
-  <?> "parseTransclusionOptions"
+    <|> parseFirstLines
+    <|> parseHeadingSection
+    <|> parseWholeDocument
+    <?> "parseTransclusionOptions"
 
-parseTransclusion :: Parser Transclusion
+parseTransclusion :: Attoparsec.Parser Core.Transclusion
 parseTransclusion = prefixed '$' inner <?> "parseTransclusion"
   where
     inner = do
       docName <- parseDocumentName
-      _ <- skipSpace
+      _ <- Attoparsec.skipSpace
       options <- parseTransclusionOptions
       _ <- skipToEndOfLine
-      return $ Transclusion docName options
+      return $ Core.Transclusion docName options
 
-parseTransclusions :: Parser [Authored]
-parseTransclusions = many1 (ToResolve <$> parseTransclusion) <?> "parseTransclusions"
+parseTransclusions :: Attoparsec.Parser [Core.Authored]
+parseTransclusions = many1 (Core.ToResolve <$> parseTransclusion) <?> "parseTransclusions"
 
 ------------------------------------------------------------
 --                    Document Parsing                    --
 ------------------------------------------------------------
 
-parseAuthoreds :: Parser [Authored]
+parseAuthoreds :: Attoparsec.Parser [Core.Authored]
 parseAuthoreds =
   concat
-    <$> many1 (
-        parseTransclusions
-        <|> parseNonBlankBlocks
-        <|> parseNewLines
+    <$> many1
+      ( parseTransclusions
+          <|> parseNonBlankBlocks
+          <|> parseNewLines
       )
     <?> "parseAuthoreds"

@@ -10,37 +10,38 @@ module Subtextual.File
 where
 
 import Data.Attoparsec.Text (parseOnly)
-import qualified Data.ByteString as B (readFile, writeFile)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as E (decodeUtf8, encodeUtf8)
-import qualified Data.Text.IO as I
-import Subtextual.Core (Authored, Block)
-import qualified Subtextual.Html as H
-import qualified Subtextual.Parser as P
-import qualified Subtextual.Unparser as U
-import qualified System.Directory as D
-import qualified System.FilePath as FP
+
+import qualified Data.ByteString as ByteString
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Encoding
+import qualified Data.Text.IO as IO
+import qualified Subtextual.Core as Core
+import qualified Subtextual.Html as Html
+import qualified Subtextual.Parser as Parser
+import qualified Subtextual.Unparser as Unparser
+import qualified System.Directory as Directory
+import qualified System.FilePath as FilePath
 
 ------------------------------------------------------------
 --                         UTF8 IO                        --
 ------------------------------------------------------------
 
-readFileUtf8 :: FilePath -> IO T.Text
-readFileUtf8 fp = E.decodeUtf8 <$> B.readFile fp
+readFileUtf8 :: FilePath -> IO Text.Text
+readFileUtf8 fp = Encoding.decodeUtf8 <$> ByteString.readFile fp
 
-writeFileUtf8 :: FilePath -> T.Text -> IO ()
-writeFileUtf8 fp text = B.writeFile fp (E.encodeUtf8 text)
+writeFileUtf8 :: FilePath -> Text.Text -> IO ()
+writeFileUtf8 fp text = ByteString.writeFile fp (Encoding.encodeUtf8 text)
 
 ------------------------------------------------------------
 --                 Selecting Subtext Files                --
 ------------------------------------------------------------
 
 isSubtextFile :: FilePath -> Bool
-isSubtextFile = (".subtext" ==) . FP.takeExtension
+isSubtextFile = (".subtext" ==) . FilePath.takeExtension
 
 subtextFilesInDir :: FilePath -> IO [FilePath]
 subtextFilesInDir dir = do
-  children <- D.listDirectory dir
+  children <- Directory.listDirectory dir
   let subtextFiles = filter isSubtextFile children
   return subtextFiles
 
@@ -48,17 +49,17 @@ subtextFilesInDir dir = do
 --                  Reading Subtext Files                 --
 ------------------------------------------------------------
 
-readSubtext :: FilePath -> IO (Either String (String, [Authored]))
+readSubtext :: FilePath -> IO (Either String (String, [Core.Authored]))
 readSubtext fp = do
   file <- readFileUtf8 fp
-  let result = parseOnly P.parseAuthoreds file
+  let result = parseOnly Parser.parseAuthoreds file
   case result of
     Left err -> return $ Left err
     Right doc' -> do
-      let docName = FP.takeBaseName fp
+      let docName = FilePath.takeBaseName fp
       return $ Right (docName, doc')
 
-readSubtexts :: FilePath -> IO [Either String (String, [Authored])]
+readSubtexts :: FilePath -> IO [Either String (String, [Core.Authored])]
 readSubtexts dir = do
   subtextFiles <- subtextFilesInDir dir
   mapM readSubtext subtextFiles
@@ -68,7 +69,7 @@ readSubtexts dir = do
 ------------------------------------------------------------
 
 write' ::
-  (a -> T.Text) -> -- Render the Document as Text
+  (a -> Text.Text) -> -- Render the Document as Text
   FilePath -> -- Filepath to write the Document to
   a -> -- The Document
   IO () -- Writing the file
@@ -78,7 +79,7 @@ qualifyPath ::
   FilePath ->
   (String, a) ->
   (FilePath, a)
-qualifyPath parentDir (name, doc) = (parentDir FP.</> name, doc)
+qualifyPath parentDir (name, doc) = (parentDir FilePath.</> name, doc)
 
 qualifyPaths ::
   FilePath -> -- The parent directory
@@ -98,18 +99,18 @@ writes' writeF parentDir namedDocs =
 
 ----------                 Subtext                ----------
 
-writeSubtext :: FilePath -> [Authored] -> IO ()
-writeSubtext = write' U.unparseAuthoreds
+writeSubtext :: FilePath -> [Core.Authored] -> IO ()
+writeSubtext = write' Unparser.unparseAuthoreds
 
-writeSubtexts :: FilePath -> [(String, [Authored])] -> IO ()
+writeSubtexts :: FilePath -> [(String, [Core.Authored])] -> IO ()
 writeSubtexts = writes' writeSubtext
 
 ----------                  HTML                  ----------
 
-writeHtml :: FilePath -> [Block] -> IO ()
-writeHtml = write' H.renderDoc
+writeHtml :: FilePath -> [Core.Block] -> IO ()
+writeHtml = write' Html.renderDoc
 
-writeHtmls :: FilePath -> [(String, [Block])] -> IO ()
+writeHtmls :: FilePath -> [(String, [Core.Block])] -> IO ()
 writeHtmls = writes' writeHtml
 
 ------------------------------------------------------------
