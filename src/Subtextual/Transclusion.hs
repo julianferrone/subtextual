@@ -1,9 +1,10 @@
 module Subtextual.Transclusion (Corpus) where
 
-import qualified Data.Graph as Graph
 import Data.List
-import qualified Data.Map as Map
 import Data.Maybe (mapMaybe)
+
+import qualified Data.Graph as Graph
+import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Tree as Tree
 import qualified Subtextual.Core as Core
@@ -36,12 +37,12 @@ lookupTransclusion (Core.Transclusion name _) corpus = lookupWholeDocument name 
 
 excerpt :: Core.TransclusionOptions -> [Core.Block] -> [Core.Block]
 excerpt Core.WholeDocument = id
-excerpt (Core.FirstLines length) = take length
-excerpt (Core.Lines start length) = take length . drop start
+excerpt (Core.FirstLines len) = take len
+excerpt (Core.Lines start len) = take len . drop start
 -- The reason this is left as `id` is because we should be grabbing the
 -- heading section direct from the Corpus, which will have the sections
 -- pre-analysed
-excerpt (Core.HeadingSection headingName) = id
+excerpt (Core.HeadingSection _) = id
 
 resolveTransclusion :: Corpus -> Core.Transclusion -> Maybe [Core.Block]
 resolveTransclusion corpus transclusion =
