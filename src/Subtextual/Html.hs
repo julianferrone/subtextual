@@ -13,18 +13,18 @@ import qualified Subtextual.Core as Core
 ------------------------------------------------------------
 
 inlineHtml :: Core.Inline -> Lucid.Html ()
-inlineHtml (Core.PlainText p) = (span_ . toHtml) p
-inlineHtml (Core.BareUrl url) = a_ [href_ url] $ toHtml url
-inlineHtml (Core.AngledUrl url) = a_ [href_ url] $ toHtml url
+inlineHtml (Core.PlainText p) = (Lucid.span_ . Lucid.toHtml) p
+inlineHtml (Core.BareUrl url) = Lucid.a_ [Lucid.href_ url] $ Lucid.toHtml url
+inlineHtml (Core.AngledUrl url) = Lucid.a_ [Lucid.href_ url] $ Lucid.toHtml url
 inlineHtml (Core.SlashLink dn) =
-  a_
-    [ href_ dn',
-      class_ "slashlink"
+  Lucid.a_
+    [ Lucid.href_ dn',
+      Lucid.class_ "slashlink"
     ]
-    . toHtml
+    . Lucid.toHtml
     $ dn'
   where
-    dn' = unDocumentName dn
+    dn' = Core.unDocumentName dn
 
 inlinesHtml :: [Core.Inline] -> Lucid.Html ()
 inlinesHtml = mconcat . map inlineHtml
@@ -34,23 +34,23 @@ inlinesHtml = mconcat . map inlineHtml
 ------------------------------------------------------------
 
 blockHtml :: Core.Block -> Lucid.Html ()
-blockHtml (Core.Paragraph paragraph) = (p_ . inlinesHtml) paragraph
-blockHtml (Core.Heading heading) = (h2_ . toHtml) heading
-blockHtml (Core.Bullet bullet) = (li_ . inlinesHtml) bullet
-blockHtml (Core.Quote quote) = (blockquote_ . inlinesHtml) quote
+blockHtml (Core.Paragraph paragraph) = (Lucid.p_ . inlinesHtml) paragraph
+blockHtml (Core.Heading heading) = (Lucid.h2_ . Lucid.toHtml) heading
+blockHtml (Core.Bullet bullet) = (Lucid.li_ . inlinesHtml) bullet
+blockHtml (Core.Quote quote) = (Lucid.blockquote_ . inlinesHtml) quote
 blockHtml Core.Blank = mempty
-blockHtml (Core.Tag tag) = (div_ [class_ "tag"] . toHtml) tag
+blockHtml (Core.Tag tag) = (Lucid.div_ [Lucid.class_ "tag"] . Lucid.toHtml) tag
 blockHtml (Core.KeyValue key value) =
-  div_
-    [class_ "keyvalue"]
-    ( div_ [class_ "key"] (toHtml key)
-        <> div_ [class_ "value"] (toHtml value)
+  Lucid.div_
+    [Lucid.class_ "keyvalue"]
+    ( Lucid.div_ [Lucid.class_ "key"] (Lucid.toHtml key)
+        <> Lucid.div_ [Lucid.class_ "value"] (Lucid.toHtml value)
     )
 blockHtml (Core.Triple subject predicate object) =
-  (div_ [class_ "triple"] . mconcat)
-    [ div_ [class_ "subject"] (toHtml subject),
-      div_ [class_ "predicate"] (toHtml predicate),
-      div_ [class_ "object"] (toHtml object)
+  (Lucid.div_ [Lucid.class_ "triple"] . mconcat)
+    [ Lucid.div_ [Lucid.class_ "subject"] (Lucid.toHtml subject),
+      Lucid.div_ [Lucid.class_ "predicate"] (Lucid.toHtml predicate),
+      Lucid.div_ [Lucid.class_ "object"] (Lucid.toHtml object)
     ]
 
 ------------------------------------------------------------
@@ -66,15 +66,15 @@ documentHtml = mconcat . map groupHtml . group'
   where
     groupHtml :: Group Core.Block -> Lucid.Html ()
     groupHtml (Single b) = blockHtml b
-    groupHtml (Bullets bs) = ul_ $ (mconcat . map blockHtml) bs
+    groupHtml (Bullets bs) = Lucid.ul_ $ (mconcat . map blockHtml) bs
 
     group' :: [Core.Block] -> [Group Core.Block]
     group' doc = group doc []
 
     group :: [Core.Block] -> [Group Core.Block] -> [Group Core.Block]
     group [] done = (reverse . map reverseGroup) done
-    group (Core.Bullet b : todo) (Bullets bs : done) = group todo $ Bullets (Bullet b : bs) : done
-    group (Core.Bullet b : todo) done = group todo $ Bullets [Bullet b] : done
+    group (Core.Bullet b : todo) (Bullets bs : done) = group todo $ Bullets (Core.Bullet b : bs) : done
+    group (Core.Bullet b : todo) done = group todo $ Bullets [Core.Bullet b] : done
     group (b : todo) done = group todo $ Single b : done
 
     reverseGroup :: Group a -> Group a
