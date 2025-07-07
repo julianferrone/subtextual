@@ -1,4 +1,4 @@
-module Subtextual.Core.Transclusion (Corpus) where
+module Subtextual.Transclusion (Corpus) where
 
 import qualified Data.Graph as Graph
 import Data.List
