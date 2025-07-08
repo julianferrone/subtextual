@@ -1,4 +1,4 @@
-module Subtextual.Transclusion (excerpt) where
+module Subtextual.Transclusion (excerpt, resolveCorpus) where
 
 import qualified Data.Graph as Graph
 import Data.List
@@ -14,10 +14,15 @@ import qualified Subtextual.Core as Core
 
 newtype Corpus a = Corpus {unCorpus :: Map.Map Core.DocumentName [a]}
 
+corpus :: Map.Map Core.DocumentName [a] -> Corpus a
+corpus = Corpus
+
 documents :: Corpus a -> [Core.Document a]
 documents = fmap (uncurry Core.document) . Map.assocs . unCorpus
 
--- ----------          Looking up Documents          ----------
+------------------------------------------------------------
+--                  Looking up Documents                  --
+------------------------------------------------------------
 
 lookupDoc :: Core.DocumentName -> Corpus a -> Maybe [a]
 lookupDoc name = Map.lookup name . unCorpus
@@ -29,7 +34,9 @@ resolveTransclusion corpus (Core.Transclusion docName options) = case lookupDoc 
     Left heading -> [Core.HeadingNotFound docName heading]
     Right excerpted -> excerpted
 
-----------        Excerpting from Documents       ----------
+------------------------------------------------------------
+--                  Excerpting Documents                  --
+------------------------------------------------------------
 
 {-
 We return a `Left Core.Text.Text` from `excerpt` so that in `resolveTransclusion`,
@@ -80,8 +87,11 @@ excerpt (Core.HeadingSection heading) =
 
 ----------           Graph Construction           ----------
 
-referencedDocs :: Core.Document Core.Authored -> Core.Document Core.DocumentName
-referencedDocs = Core.liftD (fmap Core.target . Core.catToResolves)
+docReferences :: [Core.Authored] -> [Core.DocumentName]
+docReferences = fmap Core.target . Core.catToResolves
+
+corpusReferences :: Corpus Core.Authored -> Corpus Core.DocumentName
+corpusReferences = corpus . fmap docReferences . unCorpus
 
 -- This is just to prepare for constructing a graph
 docGraphNode :: Core.Document Core.DocumentName -> (Core.DocumentName, Core.DocumentName, [Core.DocumentName])
@@ -111,3 +121,10 @@ isCyclic = null . cycles
 
 sortDag :: Graph.Graph -> Maybe [Graph.Vertex]
 sortDag g = if isCyclic g then Nothing else Just . Graph.topSort $ g
+
+------------------------------------------------------------
+--             Resolve All Documents In Corpus            --
+------------------------------------------------------------
+
+resolveCorpus :: Corpus Core.Authored -> Corpus Core.Resolved
+resolveCorpus = _
