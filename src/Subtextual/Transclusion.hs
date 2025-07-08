@@ -17,8 +17,18 @@ newtype Corpus a = Corpus {unCorpus :: Map.Map Core.DocumentName [a]}
 corpus :: Map.Map Core.DocumentName [a] -> Corpus a
 corpus = Corpus
 
+emptyCorpus :: Corpus a
+emptyCorpus = corpus Map.empty
+
 documents :: Corpus a -> [Core.Document a]
 documents = fmap (uncurry Core.document) . Map.assocs . unCorpus
+
+------------------------------------------------------------
+--                   Inserting Documents                  --
+------------------------------------------------------------
+
+insertDoc :: Core.Document a -> Corpus a -> Corpus a
+insertDoc doc = corpus . Map.insert (Core.title doc) (Core.content doc) . unCorpus
 
 ------------------------------------------------------------
 --                  Looking up Documents                  --
