@@ -120,8 +120,10 @@ cycles =
     -- node
     . Graph.scc
 
-isCyclic :: Graph.Graph -> Bool
-isCyclic = null . cycles
+data Cyclicity = Cyclic | Acyclic
+
+isCyclic :: Graph.Graph -> Cyclicity
+isCyclic g = if null . cycles $ g then Acyclic else Cyclic
 
 sortDag :: Graph.Graph -> Maybe [Graph.Vertex]
 sortDag g = if isCyclic g then Nothing else Just . Graph.topSort $ g
@@ -130,5 +132,7 @@ sortDag g = if isCyclic g then Nothing else Just . Graph.topSort $ g
 --             Resolve All Documents In Corpus            --
 ------------------------------------------------------------
 
-resolveCorpus :: Corpus Core.Authored -> Corpus Core.Resolved
+data ResolutionFailed = CyclicGraph
+
+resolveCorpus :: Corpus Core.Authored -> Either ResolutionFailed (Corpus Core.Resolved)
 resolveCorpus = _
