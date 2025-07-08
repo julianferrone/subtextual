@@ -24,5 +24,15 @@ The object is composed of any number of characters, including whitespace.
 
 ### Transclusion blocks
 
-Transclusion blocks start with `$`.
+Transclusion blocks start with a `$`, and denote that the content from another document must be fetched and inserted into the block.
 
+Transclusion blocks refer only to local Subtext Extended pages (whose names are akin to slashlinks).
+
+There are 4 options to select what content to refer to in a document:
+
+| Option                                          | Syntax            |
+| ----------------------------------------------- | ----------------- |
+| All the content of the referenced document      | `$ doc`           |
+| The first `n` lines of the referenced document. | `$ doc \| n`      |
+| `n` lines after line `m`. Lines are 0-indexed.  | `$ doc \| m n`    |
+| The section under a given heading block.        | `$ doc # heading` |
