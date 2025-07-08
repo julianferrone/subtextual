@@ -122,10 +122,38 @@ docLevelDag ::
   Corpus Core.Authored ->
   Either
     (GraphContainsCycles Core.DocumentName)
-    [Core.DocumentName] -- The list of DocumentNames, sorted topologically
+    -- The list of DocumentNames, sorted topologically.
+    --
+    -- Julian 20250708: We only want to do a single pass through a 
+    -- Corpus Authored when transcluding the documents. That means whenever
+    -- we want to transclude a referenced document into the referencing 
+    -- document, we want to look up the already-processed version of the
+    -- referenced document, which we do by looking up the document in the
+    -- Corpus Resolved.
+
+    -- But how can we be sure that the referenced document is already in the
+    -- Corpus Resolved? By pre-sorting the DocumentNames in topological order
+    -- such that lower Documents (i.e. those that contain no/fewer references)
+    -- come first in the list. That means that whenever we come to a Document
+    -- which contains Transclusions which need to be resolved, we by definition
+    -- have already processed and resolved the documents it is referencing.
+
+    -- Hence we only need a single pass over the Corpus Authored to confidently 
+    -- process all the Documents! i.e. by resolving their content
+
+    -- Since we also know this list is only returned if there are no cycles,
+    -- we know that at minimum the very first document must contain no
+    -- Transclusions - since if the first document referred to some other document,
+    -- that other document would come first in the list (by definition of topological
+    -- ordering).
+
+    -- Hence even in the worst-case scenario where there is only one document
+    -- which contains only raw content, we still only need the one pass - which 
+    -- we can do via a fold.
+    [Core.DocumentName]
 docLevelDag authoredCorpus = output
   where
-    (graph, labelLookup, vertexLookup) = docLevelReferencesGraph authoredCorpus
+    (graph, labelLookup, _) = docLevelReferencesGraph authoredCorpus
 
     vertexLabel :: Graph.Vertex -> Core.DocumentName
     vertexLabel = fst3 . labelLookup
@@ -136,10 +164,12 @@ docLevelDag authoredCorpus = output
     output ::
       Either
         (GraphContainsCycles Core.DocumentName)
+        -- topologically sorted list of DocumentNames. A Document "A" which
+        -- is referenced by Document "B" will come before "B" in the list.
         [Core.DocumentName]
     output = case sortDag graph vertexLabel of
       Right sorted -> Right . fmap vertexLabel $ sorted
-      Left left -> Left left
+      Left l -> Left l
 
 ----------        Check if Graph is Cyclic        ----------
 
