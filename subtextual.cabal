@@ -80,6 +80,7 @@ test-suite subtextual-test
       FileSpec
       HtmlSpec
       ParserSpec
+      TransclusionSpec
       UnparserSpec
       Paths_subtextual
   autogen-modules:
