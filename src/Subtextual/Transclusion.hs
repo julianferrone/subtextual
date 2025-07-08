@@ -142,7 +142,7 @@ docLevelDag authoredCorpus = output where
 
 cycles :: Graph.Graph -> [Graph.Tree Graph.Vertex]
 cycles =
-  filter (not . null) -- Multiple nodes in SCC = nonempty tree
+  filter (not . null . Tree.subForest) -- Multiple nodes in SCC = nonempty tree
     . Graph.scc
 
 sortDag :: 
