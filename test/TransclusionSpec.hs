@@ -88,10 +88,6 @@ transclusionsDoc =
       Core.Present (Core.Bullet [Core.PlainText (Text.pack "Consectetur adipiscing elit")])
     ]
 
-justRight :: Either a b -> Maybe b
-justRight (Left _) = Nothing
-justRight (Right r) = Just r
-
 spec :: Spec
 spec = do
   describe "excerpt" $ do
