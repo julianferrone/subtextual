@@ -32,7 +32,7 @@ import qualified Data.Text as Text
 --                        Documents                       --
 ------------------------------------------------------------
 
-data Document a = Document DocumentName [a]
+data Document a = Document DocumentName [a] deriving (Eq, Show)
 
 document :: DocumentName -> [a] -> Document a
 document = Document
