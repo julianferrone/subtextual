@@ -35,7 +35,8 @@ instance Lucid.ToHtml (SubtextHtml Core.Inline) where
       [ Lucid.href_ . Core.unDocumentName $ dn,
         Lucid.class_ "slashlink"
       ]
-      . Lucid.toHtml . subtextHtml
+      . Lucid.toHtml
+      . subtextHtml
       $ dn
 
   toHtmlRaw (SubtextHtml (Core.PlainText p)) = (Lucid.span_ . Lucid.toHtmlRaw) p
@@ -46,7 +47,8 @@ instance Lucid.ToHtml (SubtextHtml Core.Inline) where
       [ Lucid.href_ . Core.unDocumentName $ dn,
         Lucid.class_ "slashlink"
       ]
-      . Lucid.toHtmlRaw . subtextHtml
+      . Lucid.toHtmlRaw
+      . subtextHtml
       $ dn
 
 instance Lucid.ToHtml (SubtextHtml [Core.Inline]) where
