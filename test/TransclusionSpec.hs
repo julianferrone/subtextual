@@ -1,5 +1,7 @@
 module TransclusionSpec (spec) where
 
+import Data.Either
+
 import qualified Data.Text as Text
 import qualified Subtextual.Core as Core
 import qualified Subtextual.Transclusion as Transclusion
@@ -41,6 +43,48 @@ testDoc =
           Core.Blank,
           Core.Paragraph [Core.BareUrl (Text.pack "https://en.wikipedia.org/wiki/Evolutionary_systems")]
         ]
+
+acyclicTestCorpus :: Transclusion.Corpus Core.Authored
+acyclicTestCorpus = Transclusion.fromDocuments [
+  Core.document (Core.documentName (Text.pack "foo")) [
+      Core.Raw (Core.Paragraph [Core.PlainText (Text.pack "This is line 0 of foo")]),
+      Core.Raw (Core.Heading (Text.pack "Foo 1")),
+      Core.Raw (Core.Paragraph [Core.PlainText (Text.pack "This is under the Foo 1 heading")]),
+      Core.Raw (Core.Tag (Text.pack "underFoo1HeadingToo"))
+    ],
+  Core.document (Core.documentName (Text.pack "bar")) [
+      Core.Raw (Core.Paragraph [Core.PlainText (Text.pack "Bar 0")]),
+      Core.Raw (Core.Paragraph [Core.PlainText (Text.pack "Bar 1")]),
+      Core.Raw (Core.Paragraph [Core.PlainText (Text.pack "Bar 2")]),
+      Core.Raw (Core.Paragraph [Core.PlainText (Text.pack "Bar 3")]),
+      Core.Raw (Core.Paragraph [Core.PlainText (Text.pack "Bar 4")])
+    ],
+  Core.document (Core.documentName (Text.pack "lorem-ipsum")) [
+      Core.Raw (Core.Bullet [Core.PlainText (Text.pack "Lorem ipsum dolor sit amet")]),
+      Core.Raw (Core.Bullet [Core.PlainText (Text.pack "Consectetur adipiscing elit")]),
+      Core.Raw (Core.Bullet [Core.PlainText (Text.pack "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua")])
+    ],
+  Core.document (Core.documentName (Text.pack "transclusions")) [
+      Core.ToResolve (Core.Transclusion (Core.documentName (Text.pack "foo")) (Core.HeadingSection (Text.pack "Foo 1"))),
+      Core.ToResolve (Core.Transclusion (Core.documentName (Text.pack "bar")) (Core.FirstLines 3)),
+      Core.ToResolve (Core.Transclusion (Core.documentName (Text.pack "lorem-ipsum")) (Core.Lines 1 1))
+    ]
+  ]
+
+transclusionsDoc :: Core.Document Core.Resolved
+transclusionsDoc = Core.document (Core.documentName (Text.pack "transclusions")) [
+    Core.Present (Core.Heading (Text.pack "Foo 1")),
+    Core.Present (Core.Paragraph [Core.PlainText (Text.pack "This is under the Foo 1 heading")]),
+    Core.Present (Core.Tag (Text.pack "underFoo1HeadingToo")),
+    Core.Present (Core.Paragraph [Core.PlainText (Text.pack "Bar 0")]),
+    Core.Present (Core.Paragraph [Core.PlainText (Text.pack "Bar 1")]),
+    Core.Present (Core.Paragraph [Core.PlainText (Text.pack "Bar 2")]),
+    Core.Present (Core.Bullet [Core.PlainText (Text.pack "Consectetur adipiscing elit")])
+  ]
+
+justRight :: Either a b -> Maybe b
+justRight (Left _) = Nothing
+justRight (Right r) = Just r
 
 spec :: Spec
 spec = do
@@ -85,3 +129,7 @@ spec = do
     it "excerpting non-existing heading returns Left" $ do
       Transclusion.excerpt (Core.HeadingSection (Text.pack "Heading doesn't exist")) testDoc
         `shouldBe` Left (Text.pack "Heading doesn't exist")
+  describe "resolveCorpus" $ do
+    it "resolves the acyclic corpus" $ Transclusion.resolveCorpus acyclicTestCorpus `shouldSatisfy` isRight
+    -- if "resolves the acyclic corpus and looks up the transcluded document" $ do
+    --   (Transclusion.lookupDocument (Core.documentName (Text.pack "transclusions"))) <$> (Transclusion.resolveCorpus acyclicTestCorpus) `shouldBe` Just transclusionsDoc
