@@ -97,13 +97,17 @@ corpusReferences = corpus . fmap docReferences . unCorpus
 docGraphNode :: Core.Document Core.DocumentName -> (Core.DocumentName, Core.DocumentName, [Core.DocumentName])
 docGraphNode doc = (Core.title doc, Core.title doc, Core.content doc)
 
-docReferencesGraph ::
-  [Core.Document Core.DocumentName] ->
+docLevelReferencesGraph ::
+  Corpus Core.Authored -> -- A raw corpus to process
   ( Graph.Graph,
     Graph.Vertex -> (Core.DocumentName, Core.DocumentName, [Core.DocumentName]),
     Core.DocumentName -> Maybe Graph.Vertex
-  )
-docReferencesGraph = Graph.graphFromEdges . fmap docGraphNode
+  ) -- The graph 
+docLevelReferencesGraph = 
+  Graph.graphFromEdges
+   . fmap docGraphNode
+   . documents
+   . corpusReferences
 
 ----------        Check if Graph is Cyclic        ----------
 
