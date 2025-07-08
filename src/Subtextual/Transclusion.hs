@@ -113,10 +113,7 @@ docLevelDag ::
   Corpus Core.Authored 
   -> Either 
     (GraphContainsCycles Core.DocumentName) 
-    (
-      [Graph.Vertex], 
-      Core.DocumentName -> Maybe Graph.Vertex
-    )
+    [Core.DocumentName] -- The list of DocumentNames, sorted topologically
 docLevelDag authoredCorpus = output where
   (graph, labelLookup, vertexLookup) = docLevelReferencesGraph authoredCorpus
 
@@ -128,12 +125,9 @@ docLevelDag authoredCorpus = output where
 
   output :: Either 
     (GraphContainsCycles Core.DocumentName) 
-    (
-      [Graph.Vertex], 
-      Core.DocumentName -> Maybe Graph.Vertex
-    )
+    [Core.DocumentName]
   output = case sortDag graph vertexLabel of
-    Right sorted -> Right (sorted, vertexLookup)
+    Right sorted -> Right . fmap vertexLabel $ sorted
     Left left -> Left left
 
 ----------        Check if Graph is Cyclic        ----------
