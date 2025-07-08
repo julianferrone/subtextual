@@ -47,10 +47,10 @@ spec = do
   describe "excerpt" $ do
     it "excerpting the whole document returns the whole document" $ do
       Transclusion.excerpt Core.WholeDocument testDoc
-        `shouldBe` testDoc
+        `shouldBe` Just testDoc
     it "excerpting the first 7 lines returns lines 0-6" $ do
       Transclusion.excerpt (Core.FirstLines 7) testDoc
-        `shouldBe` Core.Present
+        `shouldBe` Just (Core.Present
           <$> [ Core.Heading (Text.pack "Overview"),
                 Core.Blank,
                 Core.Paragraph [Core.PlainText (Text.pack "Evolution is a behavior that emerges in any system with:")],
@@ -58,10 +58,10 @@ spec = do
                 Core.Bullet [Core.PlainText (Text.pack "Mutation")],
                 Core.Bullet [Core.PlainText (Text.pack "Heredity")],
                 Core.Bullet [Core.PlainText (Text.pack "Selection")]
-              ]
+              ])
     it "excerpting lines 7 4 returns lines 7-10" $ do
       Transclusion.excerpt (Core.Lines 7 4) testDoc
-        `shouldBe` Core.Present
+        `shouldBe` Just (Core.Present
           <$> [ Core.Blank,
                 Core.Paragraph [Core.PlainText (Text.pack "Evolutionary systems often generate unexpected solutions. Nature selects for good enough.")],
                 Core.Blank,
@@ -70,10 +70,10 @@ spec = do
                     Core.BareUrl (Text.pack "https://overcast.fm/+UtNTAcN2Y/13:36"),
                     Core.PlainText (Text.pack " )")
                   ]
-              ]
-    it "excerpting existing heading returns lines the section under the heading" $ do
+              ])
+    it "excerpting existing heading returns the section under the heading" $ do
       Transclusion.excerpt (Core.HeadingSection (Text.pack "Questions")) testDoc
-        `shouldBe` Core.Present
+        `shouldBe` Just (Core.Present
           <$> [ Core.Heading (Text.pack "Questions"),
                 Core.Blank,
                 Core.Bullet [Core.PlainText (Text.pack "What systems (beside biology) exhibit evolutionary behavior? Remember, evolution happens in any system with mutation, heredity, selection.")],
@@ -81,4 +81,7 @@ spec = do
                 Core.Bullet [Core.PlainText (Text.pack "Do you see a system with one of these properties? How can you introduce the other two?")],
                 Core.Blank,
                 Core.Blank
-              ]
+              ])
+    it "excerpting non-existing heading returns Nothing" $ do
+      Transclusion.excerpt (Core.HeadingSection (Text.pack "Heading doesn't exist")) testDoc
+        `shouldBe` Nothing

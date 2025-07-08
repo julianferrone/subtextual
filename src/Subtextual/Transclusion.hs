@@ -34,14 +34,19 @@ import qualified Subtextual.Core as Core
 
 ----------        Excerpting from Documents       ----------
 
-excerpt :: Core.TransclusionOptions -> [Core.Resolved] -> [Core.Resolved]
-excerpt Core.WholeDocument = id
-excerpt (Core.FirstLines len) = take len
-excerpt (Core.Lines start len) = take len . drop start
+excerpt :: Core.TransclusionOptions -> [Core.Resolved] -> Maybe [Core.Resolved]
+excerpt Core.WholeDocument = Just
+excerpt (Core.FirstLines len) = Just . take len
+excerpt (Core.Lines start len) = Just . take len . drop start
 excerpt (Core.HeadingSection heading) =
-  takeWhile (\resolved -> isGivenHeading heading resolved || isNotHeading resolved)
+  toMaybe
+    . takeWhile (\resolved -> isGivenHeading heading resolved || isNotHeading resolved)
     . dropWhile (not . isGivenHeading heading)
   where
+    toMaybe :: [a] -> Maybe [a]
+    toMaybe [] = Nothing
+    toMaybe as = Just as
+
     isGivenHeading :: Text.Text -> Core.Resolved -> Bool
     isGivenHeading h = (==) (Core.Present (Core.Heading h))
 
