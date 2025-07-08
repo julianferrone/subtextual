@@ -2,8 +2,8 @@ module Subtextual.Transclusion (excerpt, resolveCorpus) where
 
 import qualified Data.Graph as Graph
 import Data.List
+import Data.Maybe
 import qualified Data.Map as Map
-import Data.Maybe (mapMaybe)
 import qualified Data.Text as Text
 import qualified Data.Tree as Tree
 import qualified Subtextual.Core as Core
@@ -152,6 +152,13 @@ sortDag g nameLookup = case cycles g of
 ------------------------------------------------------------
 
 newtype GraphContainsCycles a = GraphContainsCycles [Graph.Tree a]
+
+resolveFromCorpuses :: Core.DocumentName -> Corpus Core.Authored -> Corpus Core.Resolved -> Core.Document Core.Resolved
+resolveFromCorpuses docName authoredCorpus resolvedCorpus = case lookupDoc docName authoredCorpus of
+  Nothing -> Core.document docName [Core.ResourceNotFound docName]
+  Just authoredDoc -> Core.document docName content 
+    where 
+      content = Core.resolveAuthored (resolveTransclusion resolvedCorpus) authoredDoc
 
 resolveCorpus :: Corpus Core.Authored -> Either (GraphContainsCycles Core.DocumentName) (Corpus Core.Resolved)        -- 
 resolveCorpus authoredCorpus = _
