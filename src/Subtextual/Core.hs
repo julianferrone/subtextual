@@ -141,8 +141,8 @@ resolved _ _ h (HeadingNotFound docName headingName) = h docName headingName
 
 resolveAuthored :: 
   (Transclusion -> [Resolved]) -- Function to lookup transclusion references
-  -> [Authored]                -- Document that needs to be resolved
-  -> [Resolved]                -- Resolved Document
+  -> [Authored]                -- Document content that needs resolution
+  -> [Resolved]                -- Resolved Document content
 resolveAuthored lookup = mconcat . fmap (authored (singleton . Present) lookup)
 
 {-
