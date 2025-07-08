@@ -109,6 +109,33 @@ docLevelReferencesGraph =
    . documents
    . corpusReferences
 
+docLevelDag :: 
+  Corpus Core.Authored 
+  -> Either 
+    (GraphContainsCycles Core.DocumentName) 
+    (
+      [Graph.Vertex], 
+      Core.DocumentName -> Maybe Graph.Vertex
+    )
+docLevelDag authoredCorpus = output where
+  (graph, labelLookup, vertexLookup) = docLevelReferencesGraph authoredCorpus
+
+  vertexLabel :: Graph.Vertex -> Core.DocumentName
+  vertexLabel = fst3 . labelLookup
+
+  fst3 :: (a, b, c) -> a
+  fst3 (a, _, _) = a
+
+  output :: Either 
+    (GraphContainsCycles Core.DocumentName) 
+    (
+      [Graph.Vertex], 
+      Core.DocumentName -> Maybe Graph.Vertex
+    )
+  output = case sortDag graph vertexLabel of
+    Right sorted -> Right (sorted, vertexLookup)
+    Left left -> Left left
+
 ----------        Check if Graph is Cyclic        ----------
 
 cycles :: Graph.Graph -> [Graph.Tree Graph.Vertex]
@@ -133,4 +160,4 @@ sortDag g nameLookup = case cycles g of
 newtype GraphContainsCycles a = GraphContainsCycles [Graph.Tree a]
 
 resolveCorpus :: Corpus Core.Authored -> Either (GraphContainsCycles Core.DocumentName) (Corpus Core.Resolved)        -- 
-resolveCorpus = _
+resolveCorpus authoredCorpus = _
