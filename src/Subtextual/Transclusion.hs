@@ -14,6 +14,9 @@ import qualified Subtextual.Core as Core
 
 newtype Corpus a = Corpus {unCorpus :: Map.Map Core.DocumentName [a]}
 
+documents :: Corpus a -> [Core.Document a]
+documents = fmap (uncurry Core.document) . Map.assocs . unCorpus
+
 -- ----------          Looking up Documents          ----------
 
 lookupDoc :: Core.DocumentName -> Corpus a -> Maybe [a]
