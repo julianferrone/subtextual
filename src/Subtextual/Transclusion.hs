@@ -170,5 +170,14 @@ resolveFromCorpuses docName authoredCorpus resolvedCorpus = case lookupDoc docNa
     where 
       content = Core.resolveAuthored (resolveTransclusion resolvedCorpus) authoredDoc
 
+addToCorpus :: Corpus Core.Authored -> [Core.DocumentName] -> Corpus Core.Resolved -> Corpus Core.Resolved
+addToCorpus authoredCorpus docNames resolvedCorpus = foldr 
+  (updateResolvedCorpus authoredCorpus) 
+  resolvedCorpus
+  docNames
+  where
+    updateResolvedCorpus :: Corpus Core.Authored -> Core.DocumentName -> Corpus Core.Resolved -> Corpus Core.Resolved
+    updateResolvedCorpus authoredCorpus docName resolvedCorpus = insertDoc (resolveFromCorpuses docName authoredCorpus resolvedCorpus) resolvedCorpus
+
 resolveCorpus :: Corpus Core.Authored -> Either (GraphContainsCycles Core.DocumentName) (Corpus Core.Resolved)        -- 
 resolveCorpus authoredCorpus = _
