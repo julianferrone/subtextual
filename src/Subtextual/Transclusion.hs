@@ -44,8 +44,11 @@ insertDoc doc = corpus . Map.insert (Core.title doc) (Core.content doc) . unCorp
 --                  Looking up Documents                  --
 ------------------------------------------------------------
 
-lookupDoc :: Core.DocumentName -> Corpus a -> Maybe [a]
-lookupDoc name = Map.lookup name . unCorpus
+lookupContent :: Core.DocumentName -> Corpus a -> Maybe [a]
+lookupContent name = Map.lookup name . unCorpus
+
+lookupDocument :: Core.DocumentName -> Corpus a -> Maybe (Core.Document a)
+lookupDocument name = fmap (Core.document name) . Map.lookup name . unCorpus
 
 resolveTransclusion :: Corpus Core.Resolved -> Core.Transclusion -> [Core.Resolved]
 resolveTransclusion corpus (Core.Transclusion docName options) = case lookupDoc docName corpus of
