@@ -149,7 +149,7 @@ resolveAuthored ::
 resolveAuthored lookup authoreds = 
   if all isRaw authoreds
     then fmap Present . catRaws $ authored 
-    else mconcat . fmap (authored (singleton . Present) lookup) $ authored
+    else mconcat . fmap (authored (singleton . Present) lookup) $ authoreds
 
 {-
  ┌───────────────────────────┐
