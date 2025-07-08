@@ -130,6 +130,13 @@ spec = do
       Transclusion.excerpt (Core.HeadingSection (Text.pack "Heading doesn't exist")) testDoc
         `shouldBe` Left (Text.pack "Heading doesn't exist")
   describe "resolveCorpus" $ do
-    it "resolves the acyclic corpus" $ Transclusion.resolveCorpus acyclicTestCorpus `shouldSatisfy` isRight
-    -- if "resolves the acyclic corpus and looks up the transcluded document" $ do
-    --   (Transclusion.lookupDocument (Core.documentName (Text.pack "transclusions"))) <$> (Transclusion.resolveCorpus acyclicTestCorpus) `shouldBe` Just transclusionsDoc
+    it "resolves the acyclic corpus" $ 
+      Transclusion.resolveCorpus acyclicTestCorpus `shouldSatisfy` isRight
+    it "resolves the acyclic corpus and looks up the transcluded document" $
+      case Transclusion.resolveCorpus acyclicTestCorpus of
+        Right resolved -> 
+          Transclusion.lookupDocument (Core.documentName (Text.pack "transclusions")) resolved
+            `shouldBe` Just transclusionsDoc
+        err -> err `shouldSatisfy` isRight 
+        -- this shouldn't occur, we know the acyclic
+        -- graph should be resolved
