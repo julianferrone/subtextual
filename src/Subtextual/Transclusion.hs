@@ -1,4 +1,4 @@
-module Subtextual.Transclusion (excerpt, resolveCorpus) where
+module Subtextual.Transclusion (excerpt, resolveCorpus, fromDocuments, toDocuments) where
 
 import qualified Data.Graph as Graph
 import Data.List
@@ -20,8 +20,11 @@ corpus = Corpus
 emptyCorpus :: Corpus a
 emptyCorpus = corpus Map.empty
 
-documents :: Corpus a -> [Core.Document a]
-documents = fmap (uncurry Core.document) . Map.assocs . unCorpus
+fromDocuments :: [Core.Document a] -> Corpus a
+fromDocuments = corpus . Map.fromList . fmap (\d -> (Core.title d, Core.content d))
+
+toDocuments :: Corpus a -> [Core.Document a]
+toDocuments = fmap (uncurry Core.document) . Map.assocs . unCorpus
 
 ------------------------------------------------------------
 --                   Inserting Documents                  --
@@ -116,7 +119,7 @@ docLevelReferencesGraph ::
 docLevelReferencesGraph = 
   Graph.graphFromEdges
    . fmap docGraphNode
-   . documents
+   . toDocuments
    . corpusReferences
 
 docLevelDag :: 
