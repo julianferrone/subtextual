@@ -47,10 +47,10 @@ spec = do
   describe "excerpt" $ do
     it "excerpting the whole document returns the whole document" $ do
       Transclusion.excerpt Core.WholeDocument testDoc
-        `shouldBe` Just testDoc
+        `shouldBe` Right testDoc
     it "excerpting the first 7 lines returns lines 0-6" $ do
       Transclusion.excerpt (Core.FirstLines 7) testDoc
-        `shouldBe` Just (Core.Present
+        `shouldBe` Right (Core.Present
           <$> [ Core.Heading (Text.pack "Overview"),
                 Core.Blank,
                 Core.Paragraph [Core.PlainText (Text.pack "Evolution is a behavior that emerges in any system with:")],
@@ -61,7 +61,7 @@ spec = do
               ])
     it "excerpting lines 7 4 returns lines 7-10" $ do
       Transclusion.excerpt (Core.Lines 7 4) testDoc
-        `shouldBe` Just (Core.Present
+        `shouldBe` Right (Core.Present
           <$> [ Core.Blank,
                 Core.Paragraph [Core.PlainText (Text.pack "Evolutionary systems often generate unexpected solutions. Nature selects for good enough.")],
                 Core.Blank,
@@ -73,7 +73,7 @@ spec = do
               ])
     it "excerpting existing heading returns the section under the heading" $ do
       Transclusion.excerpt (Core.HeadingSection (Text.pack "Questions")) testDoc
-        `shouldBe` Just (Core.Present
+        `shouldBe` Right (Core.Present
           <$> [ Core.Heading (Text.pack "Questions"),
                 Core.Blank,
                 Core.Bullet [Core.PlainText (Text.pack "What systems (beside biology) exhibit evolutionary behavior? Remember, evolution happens in any system with mutation, heredity, selection.")],
@@ -82,6 +82,6 @@ spec = do
                 Core.Blank,
                 Core.Blank
               ])
-    it "excerpting non-existing heading returns Nothing" $ do
+    it "excerpting non-existing heading returns Left" $ do
       Transclusion.excerpt (Core.HeadingSection (Text.pack "Heading doesn't exist")) testDoc
-        `shouldBe` Nothing
+        `shouldBe` Left (Text.pack "Heading doesn't exist")
