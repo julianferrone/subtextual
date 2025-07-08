@@ -1,4 +1,11 @@
-module Subtextual.Transclusion (excerpt, resolveCorpus, fromDocuments, toDocuments) where
+module Subtextual.Transclusion (
+  Corpus, 
+  fromDocuments, 
+  toDocuments,
+  lookupDocument,
+  excerpt, 
+  resolveCorpus
+) where
 
 import qualified Data.Graph as Graph
 import Data.List
