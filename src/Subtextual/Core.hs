@@ -10,9 +10,10 @@ module Subtextual.Core
     Block (..),
     Authored (..),
     authored,
-    catToResolve,
+    catToResolves,
     Resolved (..),
     resolved,
+    resolveAuthored,
     opts,
     target,
     Inline (..),
@@ -23,6 +24,7 @@ module Subtextual.Core
   )
 where
 
+import Data.List
 import qualified Data.Char as Char
 import qualified Data.Text as Text
 
@@ -114,8 +116,12 @@ authored :: (Block -> a) -> (Transclusion -> a) -> Authored -> a
 authored f _ (Raw x) = f x
 authored _ g (ToResolve y) = g y
 
-catToResolve :: [Authored] -> [Transclusion]
-catToResolve as = [t | ToResolve t <- as]
+catRaws :: [Authored] ->  [Block]
+catRaws as = [b | Raw b <- as]
+
+catToResolves :: [Authored] -> [Transclusion]
+catToResolves as = [t | ToResolve t <- as]
+
 
 data Resolved
   = Present Block
@@ -133,8 +139,11 @@ resolved f _ _ (Present block) = f block
 resolved _ g _ (ResourceNotFound docName) = g docName
 resolved _ _ h (HeadingNotFound docName headingName) = h docName headingName
 
-resolveAuthored :: (Transclusion -> Resolved) -> Authored -> Resolved
-resolveAuthored = authored Present
+resolveAuthored :: 
+  (Transclusion -> [Resolved]) -- Function to lookup transclusion references
+  -> [Authored]                -- Document that needs to be resolved
+  -> [Resolved]                -- Resolved Document
+resolveAuthored lookup = mconcat . fmap (authored (singleton . Present) lookup)
 
 {-
  ┌───────────────────────────┐
