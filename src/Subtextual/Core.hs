@@ -147,9 +147,9 @@ resolveAuthored ::
   -> [Authored]                -- Document content that needs resolution
   -> [Resolved]                -- Resolved Document content
 resolveAuthored lookup authoreds = 
-  if all isRaw authoreds 
-    then fmap Present . catRaws $ authoreds
-    else mconcat . fmap (authored (singleton . Present) lookup) $ authoreds
+  if all isRaw authoreds
+    then fmap Present . catRaws $ authored 
+    else mconcat . fmap (authored (singleton . Present) lookup) $ authored
 
 {-
  ┌───────────────────────────┐
