@@ -89,21 +89,6 @@ excerpt (Core.HeadingSection heading) =
     isNotHeading (Core.Present (Core.Heading _)) = False
     isNotHeading _ = True
 
--- resolveTransclusion :: Corpus -> Core.Transclusion -> Maybe [Core.Block]
--- resolveTransclusion corpus transclusion =
---   (excerpt . Core.opts) transclusion
---     <$> lookupTransclusion transclusion corpus
-
--- resolveToBlock :: Corpus -> Core.Authored -> [Core.Resolved]
--- resolveToBlock _ (Core.Raw block) = singleton . Core.Present $ block
--- resolveToBlock corpus (Core.ToResolve transclusion) =
---   case resolveTransclusion corpus transclusion of
---     Just blocks -> Core.Present <$> blocks
---     Nothing -> singleton . Core.ResourceNotFound . Core.target $ transclusion
-
--- resolveTransclusions :: Corpus -> [Core.Authored] -> [Core.Resolved]
--- resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
-
 ------------------------------------------------------------
 --                  Transclusion Ordering                 --
 ------------------------------------------------------------
