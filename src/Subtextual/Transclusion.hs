@@ -111,22 +111,20 @@ docLevelReferencesGraph =
 
 ----------        Check if Graph is Cyclic        ----------
 
-cycles :: Graph.Graph -> [[Graph.Tree Graph.Vertex]]
+cycles :: Graph.Graph -> [Graph.Tree Graph.Vertex]
 cycles =
-  filter (not . null) -- Multiple nodes in SCC = nonempty list
-    . fmap Tree.subForest -- If there's only 1 node in a strongly connected
-    -- component, there's no cycle. If there's multiple
-    -- nodes, those will show up as children of the first
-    -- node
+  filter (not . null) -- Multiple nodes in SCC = nonempty tree
     . Graph.scc
 
-data Cyclicity = Cyclic | Acyclic
-
-isCyclic :: Graph.Graph -> Cyclicity
-isCyclic g = if null . cycles $ g then Acyclic else Cyclic
-
-sortDag :: Graph.Graph -> Maybe [Graph.Vertex]
-sortDag g = if isCyclic g then Nothing else Just . Graph.topSort $ g
+sortDag :: 
+  Graph.Graph               -- Graph to check cycles for
+  -> (Graph.Vertex -> a)    -- Lookup vertex names for easier reporting
+  -> Either 
+    (GraphContainsCycles a) -- Graph has cycles
+    [Graph.Vertex]          -- topologically sorted list of vertices
+sortDag g nameLookup = case cycles g of
+  [] -> Right . Graph.topSort $ g
+  cycles' -> Left . GraphContainsCycles . fmap (fmap nameLookup) $ cycles'
 
 ------------------------------------------------------------
 --             Resolve All Documents In Corpus            --
