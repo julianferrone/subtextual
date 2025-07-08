@@ -112,16 +112,19 @@ data Authored
   | ToResolve Transclusion
   deriving (Show, Eq)
 
+isRaw :: Authored -> Bool
+isRaw (Raw _) = True
+isRaw _ = False
+
 authored :: (Block -> a) -> (Transclusion -> a) -> Authored -> a
 authored f _ (Raw x) = f x
 authored _ g (ToResolve y) = g y
 
-catRaws :: [Authored] ->  [Block]
+catRaws :: [Authored] -> [Block]
 catRaws as = [b | Raw b <- as]
 
 catToResolves :: [Authored] -> [Transclusion]
 catToResolves as = [t | ToResolve t <- as]
-
 
 data Resolved
   = Present Block
@@ -143,7 +146,10 @@ resolveAuthored ::
   (Transclusion -> [Resolved]) -- Function to lookup transclusion references
   -> [Authored]                -- Document content that needs resolution
   -> [Resolved]                -- Resolved Document content
-resolveAuthored lookup = mconcat . fmap (authored (singleton . Present) lookup)
+resolveAuthored lookup authoreds = 
+  if all isRaw authoreds 
+    then fmap Present . catRaws $ authoreds
+    else mconcat . fmap (authored (singleton . Present) lookup) $ authoreds
 
 {-
  ┌───────────────────────────┐
