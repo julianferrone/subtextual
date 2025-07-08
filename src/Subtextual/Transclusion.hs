@@ -1,10 +1,9 @@
-module Subtextual.Transclusion (Corpus) where
-
-import Data.List
-import Data.Maybe (mapMaybe)
+module Subtextual.Transclusion (excerpt) where
 
 import qualified Data.Graph as Graph
+import Data.List
 import qualified Data.Map as Map
+import Data.Maybe (mapMaybe)
 import qualified Data.Text as Text
 import qualified Data.Tree as Tree
 import qualified Subtextual.Core as Core
@@ -13,51 +12,57 @@ import qualified Subtextual.Core as Core
 --                   Corpus of Documents                  --
 ------------------------------------------------------------
 
-data Corpus
-  = Corpus
-  { corpusDocuments :: Map.Map Core.DocumentName [Core.Block],
-    corpusDocumentSections :: Map.Map Core.DocumentName (Map.Map Text.Text [Core.Block])
-  }
+-- data Corpus
+--   = Corpus
+--   { corpusDocuments :: Map.Map Core.DocumentName [Core.Block],
+--     corpusDocumentSections :: Map.Map Core.DocumentName (Map.Map Text.Text [Core.Block])
+--   }
 
-----------          Looking up Documents          ----------
+-- ----------          Looking up Documents          ----------
 
-lookupWholeDocument :: Core.DocumentName -> Corpus -> Maybe [Core.Block]
-lookupWholeDocument name = Map.lookup name . corpusDocuments
+-- lookupWholeDocument :: Core.DocumentName -> Corpus -> Maybe [Core.Block]
+-- lookupWholeDocument name = Map.lookup name . corpusDocuments
 
-lookupDocumentSections :: Core.DocumentName -> Corpus -> Maybe (Map.Map Text.Text [Core.Block])
-lookupDocumentSections name = Map.lookup name . corpusDocumentSections
+-- lookupDocumentSections :: Core.DocumentName -> Corpus -> Maybe (Map.Map Text.Text [Core.Block])
+-- lookupDocumentSections name = Map.lookup name . corpusDocumentSections
 
-lookupTransclusion :: Core.Transclusion -> Corpus -> Maybe [Core.Block]
-lookupTransclusion (Core.Transclusion name (Core.HeadingSection section)) corpus =
-  lookupDocumentSections name corpus
-    >>= Map.lookup section
-lookupTransclusion (Core.Transclusion name _) corpus = lookupWholeDocument name corpus
+-- lookupTransclusion :: Core.Transclusion -> Corpus -> Maybe [Core.Block]
+-- lookupTransclusion (Core.Transclusion name (Core.HeadingSection section)) corpus =
+--   lookupDocumentSections name corpus
+--     >>= Map.lookup section
+-- lookupTransclusion (Core.Transclusion name _) corpus = lookupWholeDocument name corpus
 
 ----------        Excerpting from Documents       ----------
 
-excerpt :: Core.TransclusionOptions -> [Core.Block] -> [Core.Block]
+excerpt :: Core.TransclusionOptions -> [Core.Resolved] -> [Core.Resolved]
 excerpt Core.WholeDocument = id
 excerpt (Core.FirstLines len) = take len
 excerpt (Core.Lines start len) = take len . drop start
--- The reason this is left as `id` is because we should be grabbing the
--- heading section direct from the Corpus, which will have the sections
--- pre-analysed
-excerpt (Core.HeadingSection _) = id
+excerpt (Core.HeadingSection heading) =
+  takeWhile (\resolved -> isGivenHeading heading resolved || isNotHeading resolved)
+    . dropWhile (not . isGivenHeading heading)
+  where
+    isGivenHeading :: Text.Text -> Core.Resolved -> Bool
+    isGivenHeading h = (==) (Core.Present (Core.Heading h))
 
-resolveTransclusion :: Corpus -> Core.Transclusion -> Maybe [Core.Block]
-resolveTransclusion corpus transclusion =
-  (excerpt . Core.opts) transclusion
-    <$> lookupTransclusion transclusion corpus
+    isNotHeading :: Core.Resolved -> Bool
+    isNotHeading (Core.Present (Core.Heading _)) = False
+    isNotHeading _ = True
 
-resolveToBlock :: Corpus -> Core.Authored -> [Core.Resolved]
-resolveToBlock _ (Core.Raw block) = singleton . Core.Present $ block
-resolveToBlock corpus (Core.ToResolve transclusion) =
-  case resolveTransclusion corpus transclusion of
-    Just blocks -> Core.Present <$> blocks
-    Nothing -> singleton . Core.ResourceNotFound . Core.target $ transclusion
+-- resolveTransclusion :: Corpus -> Core.Transclusion -> Maybe [Core.Block]
+-- resolveTransclusion corpus transclusion =
+--   (excerpt . Core.opts) transclusion
+--     <$> lookupTransclusion transclusion corpus
 
-resolveTransclusions :: Corpus -> [Core.Authored] -> [Core.Resolved]
-resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
+-- resolveToBlock :: Corpus -> Core.Authored -> [Core.Resolved]
+-- resolveToBlock _ (Core.Raw block) = singleton . Core.Present $ block
+-- resolveToBlock corpus (Core.ToResolve transclusion) =
+--   case resolveTransclusion corpus transclusion of
+--     Just blocks -> Core.Present <$> blocks
+--     Nothing -> singleton . Core.ResourceNotFound . Core.target $ transclusion
+
+-- resolveTransclusions :: Corpus -> [Core.Authored] -> [Core.Resolved]
+-- resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
 
 ------------------------------------------------------------
 --                  Core.Transclusion Ordering                 --
