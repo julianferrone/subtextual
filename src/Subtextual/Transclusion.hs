@@ -180,4 +180,6 @@ addToCorpus authoredCorpus docNames resolvedCorpus = foldr
     updateResolvedCorpus authoredCorpus docName resolvedCorpus = insertDoc (resolveFromCorpuses docName authoredCorpus resolvedCorpus) resolvedCorpus
 
 resolveCorpus :: Corpus Core.Authored -> Either (GraphContainsCycles Core.DocumentName) (Corpus Core.Resolved)        -- 
-resolveCorpus authoredCorpus = _
+resolveCorpus authoredCorpus = do
+  authoredDag <- docLevelDag authoredCorpus
+  return $ addToCorpus authoredCorpus authoredDag emptyCorpus
