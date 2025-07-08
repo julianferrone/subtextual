@@ -168,7 +168,7 @@ resolveAuthored lookup authoreds =
   │     └──────┬───────┘
   │            │
   │            ▼
-  └──►resolveTransclusions
+  └─► resolveTransclusions
                │
                │
          ┌─────▼──────┐
