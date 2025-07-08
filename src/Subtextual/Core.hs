@@ -24,8 +24,8 @@ module Subtextual.Core
   )
 where
 
-import Data.List
 import qualified Data.Char as Char
+import Data.List
 import qualified Data.Text as Text
 
 ------------------------------------------------------------
@@ -142,11 +142,11 @@ resolved f _ _ (Present block) = f block
 resolved _ g _ (ResourceNotFound docName) = g docName
 resolved _ _ h (HeadingNotFound docName headingName) = h docName headingName
 
-resolveAuthored :: 
-  (Transclusion -> [Resolved]) -- Function to lookup transclusion references
-  -> [Authored]                -- Document content that needs resolution
-  -> [Resolved]                -- Resolved Document content
-resolveAuthored f as = 
+resolveAuthored ::
+  (Transclusion -> [Resolved]) -> -- Function to lookup transclusion references
+  [Authored] -> -- Document content that needs resolution
+  [Resolved] -- Resolved Document content
+resolveAuthored f as =
   if all isRaw as
     then fmap Present . catRaws $ as
     else mconcat . fmap (authored (singleton . Present) f) $ as
