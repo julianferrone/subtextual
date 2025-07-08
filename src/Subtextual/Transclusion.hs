@@ -130,7 +130,7 @@ sortDag g nameLookup = case cycles g of
 --             Resolve All Documents In Corpus            --
 ------------------------------------------------------------
 
-data ResolutionFailed = CyclicGraph
+newtype GraphContainsCycles a = GraphContainsCycles [Graph.Tree a]
 
-resolveCorpus :: Corpus Core.Authored -> Either ResolutionFailed (Corpus Core.Resolved)
+resolveCorpus :: Corpus Core.Authored -> Either (GraphContainsCycles Core.DocumentName) (Corpus Core.Resolved)        -- 
 resolveCorpus = _
