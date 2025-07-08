@@ -88,6 +88,19 @@ transclusionsDoc =
       Core.Present (Core.Bullet [Core.PlainText (Text.pack "Consectetur adipiscing elit")])
     ]
 
+cyclicTestCorpus :: Transclusion.Corpus Core.Authored
+cyclicTestCorpus =
+  Transclusion.fromDocuments
+    [ Core.document
+        (Core.documentName (Text.pack "one"))
+        [ Core.ToResolve (Core.Transclusion (Core.documentName (Text.pack "two")) Core.WholeDocument)
+        ],
+      Core.document
+        (Core.documentName (Text.pack "two"))
+        [ Core.ToResolve (Core.Transclusion (Core.documentName (Text.pack "one")) Core.WholeDocument)
+        ]
+    ]
+
 spec :: Spec
 spec = do
   describe "excerpt" $ do
@@ -140,6 +153,8 @@ spec = do
   describe "resolveCorpus" $ do
     it "resolves the acyclic corpus" $
       Transclusion.resolveCorpus acyclicTestCorpus `shouldSatisfy` isRight
+    it "complains that cyclic corpus has cycles" $ do
+      Transclusion.resolveCorpus cyclicTestCorpus `shouldSatisfy` isLeft
     it "resolves the acyclic corpus and looks up the transcluded document" $
       case Transclusion.resolveCorpus acyclicTestCorpus of
         Right resolved ->
