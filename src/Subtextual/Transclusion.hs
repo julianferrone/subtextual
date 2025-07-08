@@ -19,7 +19,7 @@ import qualified Subtextual.Core as Core
 --                   Corpus of Documents                  --
 ------------------------------------------------------------
 
-newtype Corpus a = Corpus {unCorpus :: Map.Map Core.DocumentName [a]}
+newtype Corpus a = Corpus {unCorpus :: Map.Map Core.DocumentName [a]} deriving (Eq, Ord, Show)
 
 corpus :: Map.Map Core.DocumentName [a] -> Corpus a
 corpus = Corpus
@@ -169,9 +169,9 @@ sortDag g nameLookup = case cycles g of
 
 ------------------------------------------------------------
 --             Resolve All Documents In Corpus            --
-------------------------------------------------------------
+----------------------------------------------------------
 
-newtype GraphContainsCycles a = GraphContainsCycles [Graph.Tree a]
+newtype GraphContainsCycles a = GraphContainsCycles [Graph.Tree a] deriving (Eq, Ord, Show)
 
 resolveFromCorpuses :: Core.DocumentName -> Corpus Core.Authored -> Corpus Core.Resolved -> Core.Document Core.Resolved
 resolveFromCorpuses docName authoredCorpus resolvedCorpus = case lookupDoc docName authoredCorpus of
