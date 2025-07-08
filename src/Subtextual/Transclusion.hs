@@ -12,40 +12,42 @@ import qualified Subtextual.Core as Core
 --                   Corpus of Documents                  --
 ------------------------------------------------------------
 
--- data Corpus
---   = Corpus
---   { corpusDocuments :: Map.Map Core.DocumentName [Core.Block],
---     corpusDocumentSections :: Map.Map Core.DocumentName (Map.Map Text.Text [Core.Block])
---   }
+newtype Corpus a = Corpus {unCorpus :: Map.Map Core.DocumentName [a]}
 
 -- ----------          Looking up Documents          ----------
 
--- lookupWholeDocument :: Core.DocumentName -> Corpus -> Maybe [Core.Block]
--- lookupWholeDocument name = Map.lookup name . corpusDocuments
+lookupDoc :: Core.DocumentName -> Corpus a -> Maybe [a]
+lookupDoc name = Map.lookup name . unCorpus
 
--- lookupDocumentSections :: Core.DocumentName -> Corpus -> Maybe (Map.Map Text.Text [Core.Block])
--- lookupDocumentSections name = Map.lookup name . corpusDocumentSections
-
--- lookupTransclusion :: Core.Transclusion -> Corpus -> Maybe [Core.Block]
--- lookupTransclusion (Core.Transclusion name (Core.HeadingSection section)) corpus =
---   lookupDocumentSections name corpus
---     >>= Map.lookup section
--- lookupTransclusion (Core.Transclusion name _) corpus = lookupWholeDocument name corpus
+resolveTransclusion :: Corpus Core.Resolved -> Core.Transclusion -> [Core.Resolved]
+resolveTransclusion corpus (Core.Transclusion docName options) = case lookupDoc docName corpus of
+  Nothing -> [Core.ResourceNotFound docName]
+  Just resolveds -> case excerpt options resolveds of
+    Left heading -> [Core.HeadingNotFound docName heading]
+    Right excerpted -> excerpted
 
 ----------        Excerpting from Documents       ----------
 
-excerpt :: Core.TransclusionOptions -> [Core.Resolved] -> Maybe [Core.Resolved]
-excerpt Core.WholeDocument = Just
-excerpt (Core.FirstLines len) = Just . take len
-excerpt (Core.Lines start len) = Just . take len . drop start
+{-
+We return a `Left Core.Text.Text` from `excerpt` so that in `resolveTransclusion`,
+we can wrap the not-found header into a `Core.HeadingNotFound` and thus show the
+failed attempt to excerpt a heading subsection of the given content.
+-}
+excerpt :: 
+  Core.TransclusionOptions            -- How to excerpt the blocks
+  -> [Core.Resolved]                  -- Already resolved blocks
+  -> Either Text.Text [Core.Resolved] -- Excerpt of the document
+excerpt Core.WholeDocument = Right
+excerpt (Core.FirstLines len) = Right . take len
+excerpt (Core.Lines start len) = Right . take len . drop start
 excerpt (Core.HeadingSection heading) =
-  toMaybe
+  rejectIfEmpty heading
     . takeWhile (\resolved -> isGivenHeading heading resolved || isNotHeading resolved)
     . dropWhile (not . isGivenHeading heading)
   where
-    toMaybe :: [a] -> Maybe [a]
-    toMaybe [] = Nothing
-    toMaybe as = Just as
+    rejectIfEmpty :: a -> [b] -> Either a [b]
+    rejectIfEmpty a [] = Left a
+    rejectIfEmpty _ bs = Right bs
 
     isGivenHeading :: Text.Text -> Core.Resolved -> Bool
     isGivenHeading h = (==) (Core.Present (Core.Heading h))
@@ -70,13 +72,13 @@ excerpt (Core.HeadingSection heading) =
 -- resolveTransclusions corpus = mconcat . fmap (resolveToBlock corpus)
 
 ------------------------------------------------------------
---                  Core.Transclusion Ordering                 --
+--                  Transclusion Ordering                 --
 ------------------------------------------------------------
 
 ----------           Graph Construction           ----------
 
 referencedDocs :: Core.Document Core.Authored -> Core.Document Core.DocumentName
-referencedDocs = Core.liftD (fmap Core.target . Core.catToResolve)
+referencedDocs = Core.liftD (fmap Core.target . Core.catToResolves)
 
 -- This is just to prepare for constructing a graph
 docGraphNode :: Core.Document Core.DocumentName -> (Core.DocumentName, Core.DocumentName, [Core.DocumentName])
@@ -106,22 +108,3 @@ isCyclic = null . cycles
 
 sortDag :: Graph.Graph -> Maybe [Graph.Vertex]
 sortDag g = if isCyclic g then Nothing else Just . Graph.topSort $ g
-
-sortedDocReferencesGraph ::
-  [Core.Document Core.DocumentName] ->
-  Maybe
-    ( Graph.Graph,
-      Graph.Vertex -> (Core.DocumentName, Core.DocumentName, [Core.DocumentName]),
-      Core.DocumentName -> Maybe Graph.Vertex
-    )
-sortedDocReferencesGraph docs = sorted
-  where
-    ( graph,
-      nodeLookup,
-      vertexLookup
-      ) = docReferencesGraph docs
-
-    sorted =
-      if isCyclic graph
-        then Nothing
-        else Just (graph, nodeLookup, vertexLookup)
