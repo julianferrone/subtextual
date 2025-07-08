@@ -10,7 +10,6 @@ module Subtextual.File
 where
 
 import Data.Attoparsec.Text (parseOnly)
-
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Encoding
@@ -127,6 +126,7 @@ Instead we'll only allow operating on entire corpuses at once.
 
 transcribeSubtextDirToHtml :: FilePath -> FilePath -> IO [Either String ()]
 transcribeSubtextDirToHtml = _
+
 -- transcribeSubtextDirToHtml srcDir dstDir = do
 --   subtexts <- readSubtexts srcDir
 --   let qualifyRightPath = fmap $ qualifyPath dstDir

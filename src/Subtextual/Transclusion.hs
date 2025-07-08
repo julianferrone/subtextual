@@ -1,16 +1,17 @@
-module Subtextual.Transclusion (
-  Corpus, 
-  fromDocuments, 
-  toDocuments,
-  lookupDocument,
-  excerpt, 
-  resolveCorpus
-) where
+module Subtextual.Transclusion
+  ( Corpus,
+    fromDocuments,
+    toDocuments,
+    lookupDocument,
+    excerpt,
+    resolveCorpus,
+  )
+where
 
 import qualified Data.Graph as Graph
 import Data.List
-import Data.Maybe
 import qualified Data.Map as Map
+import Data.Maybe
 import qualified Data.Text as Text
 import qualified Data.Tree as Tree
 import qualified Subtextual.Core as Core
@@ -66,10 +67,10 @@ We return a `Left Core.Text.Text` from `excerpt` so that in `resolveTransclusion
 we can wrap the not-found header into a `Core.HeadingNotFound` and thus show the
 failed attempt to excerpt a heading subsection of the given content.
 -}
-excerpt :: 
-  Core.TransclusionOptions            -- How to excerpt the blocks
-  -> [Core.Resolved]                  -- Already resolved blocks
-  -> Either Text.Text [Core.Resolved] -- Excerpt of the document
+excerpt ::
+  Core.TransclusionOptions -> -- How to excerpt the blocks
+  [Core.Resolved] -> -- Already resolved blocks
+  Either Text.Text [Core.Resolved] -- Excerpt of the document
 excerpt Core.WholeDocument = Right
 excerpt (Core.FirstLines len) = Right . take len
 excerpt (Core.Lines start len) = Right . take len . drop start
@@ -110,33 +111,35 @@ docLevelReferencesGraph ::
   ( Graph.Graph,
     Graph.Vertex -> (Core.DocumentName, Core.DocumentName, [Core.DocumentName]),
     Core.DocumentName -> Maybe Graph.Vertex
-  ) -- The graph 
-docLevelReferencesGraph = 
+  ) -- The graph
+docLevelReferencesGraph =
   Graph.graphFromEdges
-   . fmap docGraphNode
-   . toDocuments
-   . corpusReferences
+    . fmap docGraphNode
+    . toDocuments
+    . corpusReferences
 
-docLevelDag :: 
-  Corpus Core.Authored 
-  -> Either 
-    (GraphContainsCycles Core.DocumentName) 
+docLevelDag ::
+  Corpus Core.Authored ->
+  Either
+    (GraphContainsCycles Core.DocumentName)
     [Core.DocumentName] -- The list of DocumentNames, sorted topologically
-docLevelDag authoredCorpus = output where
-  (graph, labelLookup, vertexLookup) = docLevelReferencesGraph authoredCorpus
+docLevelDag authoredCorpus = output
+  where
+    (graph, labelLookup, vertexLookup) = docLevelReferencesGraph authoredCorpus
 
-  vertexLabel :: Graph.Vertex -> Core.DocumentName
-  vertexLabel = fst3 . labelLookup
+    vertexLabel :: Graph.Vertex -> Core.DocumentName
+    vertexLabel = fst3 . labelLookup
 
-  fst3 :: (a, b, c) -> a
-  fst3 (a, _, _) = a
+    fst3 :: (a, b, c) -> a
+    fst3 (a, _, _) = a
 
-  output :: Either 
-    (GraphContainsCycles Core.DocumentName) 
-    [Core.DocumentName]
-  output = case sortDag graph vertexLabel of
-    Right sorted -> Right . fmap vertexLabel $ sorted
-    Left left -> Left left
+    output ::
+      Either
+        (GraphContainsCycles Core.DocumentName)
+        [Core.DocumentName]
+    output = case sortDag graph vertexLabel of
+      Right sorted -> Right . fmap vertexLabel $ sorted
+      Left left -> Left left
 
 ----------        Check if Graph is Cyclic        ----------
 
@@ -145,12 +148,12 @@ cycles =
   filter (not . null . Tree.subForest) -- Multiple nodes in SCC = nonempty tree
     . Graph.scc
 
-sortDag :: 
-  Graph.Graph               -- Graph to check cycles for
-  -> (Graph.Vertex -> a)    -- Lookup vertex names for easier reporting
-  -> Either 
+sortDag ::
+  Graph.Graph -> -- Graph to check cycles for
+  (Graph.Vertex -> a) -> -- Lookup vertex names for easier reporting
+  Either
     (GraphContainsCycles a) -- Graph has cycles
-    [Graph.Vertex]          -- topologically sorted list of vertices
+    [Graph.Vertex] -- topologically sorted list of vertices
 sortDag g nameLookup = case cycles g of
   [] -> Right . Graph.topSort $ g
   cycles' -> Left . GraphContainsCycles . fmap (fmap nameLookup) $ cycles'
@@ -164,15 +167,16 @@ newtype GraphContainsCycles a = GraphContainsCycles [Graph.Tree a] deriving (Eq,
 resolveFromCorpuses :: Core.DocumentName -> Corpus Core.Authored -> Corpus Core.Resolved -> Core.Document Core.Resolved
 resolveFromCorpuses docName authoredCorpus resolvedCorpus = case lookupContent docName authoredCorpus of
   Nothing -> Core.document docName [Core.ResourceNotFound docName]
-  Just authoredDoc -> Core.document docName content 
-    where 
+  Just authoredDoc -> Core.document docName content
+    where
       content = Core.resolveAuthored (resolveTransclusion resolvedCorpus) authoredDoc
 
 addToCorpus :: Corpus Core.Authored -> [Core.DocumentName] -> Corpus Core.Resolved -> Corpus Core.Resolved
-addToCorpus authoredCorpus docNames resolvedCorpus = foldr 
-  (updateResolvedCorpus authoredCorpus) 
-  resolvedCorpus
-  docNames
+addToCorpus authoredCorpus docNames resolvedCorpus =
+  foldr
+    (updateResolvedCorpus authoredCorpus)
+    resolvedCorpus
+    docNames
   where
     updateResolvedCorpus :: Corpus Core.Authored -> Core.DocumentName -> Corpus Core.Resolved -> Corpus Core.Resolved
     updateResolvedCorpus authoredCorpus docName resolvedCorpus = insertDoc (resolveFromCorpuses docName authoredCorpus resolvedCorpus) resolvedCorpus

@@ -117,7 +117,7 @@ takeUntilEndOfLine =
     <?> "takeUntilEndOfLine"
 
 skipToEndOfLine :: Attoparsec.Parser ()
-skipToEndOfLine =  Attoparsec.skipWhile $ not . Attoparsec.isEndOfLine
+skipToEndOfLine = Attoparsec.skipWhile $ not . Attoparsec.isEndOfLine
 
 ----------             Parsing Blocks             ----------
 
