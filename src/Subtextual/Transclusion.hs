@@ -51,7 +51,7 @@ lookupDocument :: Core.DocumentName -> Corpus a -> Maybe (Core.Document a)
 lookupDocument name = fmap (Core.document name) . Map.lookup name . unCorpus
 
 resolveTransclusion :: Corpus Core.Resolved -> Core.Transclusion -> [Core.Resolved]
-resolveTransclusion corpus (Core.Transclusion docName options) = case lookupDoc docName corpus of
+resolveTransclusion corpus (Core.Transclusion docName options) = case lookupContent docName corpus of
   Nothing -> [Core.ResourceNotFound docName]
   Just resolveds -> case excerpt options resolveds of
     Left heading -> [Core.HeadingNotFound docName heading]
@@ -177,7 +177,7 @@ sortDag g nameLookup = case cycles g of
 newtype GraphContainsCycles a = GraphContainsCycles [Graph.Tree a] deriving (Eq, Ord, Show)
 
 resolveFromCorpuses :: Core.DocumentName -> Corpus Core.Authored -> Corpus Core.Resolved -> Core.Document Core.Resolved
-resolveFromCorpuses docName authoredCorpus resolvedCorpus = case lookupDoc docName authoredCorpus of
+resolveFromCorpuses docName authoredCorpus resolvedCorpus = case lookupContent docName authoredCorpus of
   Nothing -> Core.document docName [Core.ResourceNotFound docName]
   Just authoredDoc -> Core.document docName content 
     where 
