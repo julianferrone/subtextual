@@ -12,10 +12,26 @@ import qualified System.FilePath as FP
 
 newtype Options = Options {optCommand :: Command} deriving (Show)
 
-data Command = ConvertDirectoryToHtml FilePath FilePath
+data Command
+  = ConvertFileToHtml FilePath FilePath
+  | ConvertDirectoryToHtml FilePath FilePath
   deriving (Show)
 
 ----------                 Parsing                ----------
+
+convertFileToHtml :: A.Parser Command
+convertFileToHtml =
+  ConvertFileToHtml
+    <$> A.argument
+      A.str
+      ( A.metavar "SUBTEXT_FILEPATH"
+          <> A.help "The filepath of the Subtext file to read."
+      )
+    <*> A.argument
+      A.str
+      ( A.metavar "HTML_FILEPATH"
+          <> A.help "The filepath to write the rendered HTML file to."
+      )
 
 convertDirectoryToHtml :: A.Parser Command
 convertDirectoryToHtml =
@@ -38,45 +54,39 @@ options =
   Options
     <$> A.hsubparser
       ( A.command
-          "dir"
+          "file"
           ( A.info
-              convertDirectoryToHtml
-              ( A.progDesc "Render a directory of Subtext files into HTML."
-              )
+              convertFileToHtml
+              (A.progDesc "Render a Subtext file into HTML.")
           )
+          <> A.command
+            "dir"
+            ( A.info
+                convertDirectoryToHtml
+                (A.progDesc "Render a directory of Subtext files into HTML.")
+            )
       )
 
 ----------                Executing               ----------
 
 ------ Executing Command
 
-printConversionMessage :: String -> String -> Either String () -> IO ()
-printConversionMessage src dst (Left err) = do
-  putStrLn $
-    "Converting Subtext "
-      <> src
-      <> " to HTML "
-      <> dst
-      <> " failed: "
-      <> err
-  return ()
-printConversionMessage src dst (Right res) = do
-  putStrLn $
-    "Converting Subtext "
-      <> src
-      <> " to HTML "
-      <> dst
-      <> " succeeded."
-  return ()
-
 runCommand :: Command -> IO ()
 -- runCommand (ConvertFileToHtml src dst) = do
 --     result <- F.transcribeSubtextToHtml src dst
 --     printConversionMessage src dst result
 
+runCommand (ConvertFileToHtml src dst) = do
+  result <- F.transcribeSubtextFileToHtml src dst
+  case result of
+    Left errorMsg -> putStrLn $ "Failed to parse " <> src <> ": " <>  errorMsg
+    Right _ -> putStrLn $ "Successfully transcribed " <> src <> " to " <> dst
+
 runCommand (ConvertDirectoryToHtml srcDir dstDir) = do
   result <- F.transcribeSubtextDirToHtml srcDir dstDir
-  mapM_ (printConversionMessage srcDir dstDir) result
+  case result of
+    Left cycles -> putStrLn $ "Failed to resolve graph due to cycles: " <> show cycles
+    Right errorMsgs -> mapM_ (putStrLn . ("Failed to parse: " <>)) errorMsgs
 
 ------ Executing Options
 
