@@ -80,8 +80,8 @@ readSubtexts ::
   FilePath -> -- Path to the root directory
   IO
     ( [String], -- List of failure messages (during parsing)
-      Transclusion.Corpus Core.Authored -- Corpus Authored made of successfully 
-                                        -- parsed documents
+      Transclusion.Corpus Core.Authored -- Corpus Authored made of successfully
+      -- parsed documents
     )
 readSubtexts dir = do
   subtextFiles <- subtextFilesInDir dir
@@ -94,50 +94,21 @@ readSubtexts dir = do
 --                  Writing Subtext Files                 --
 ------------------------------------------------------------
 
-write' ::
-  (a -> Text.Text) -> -- Render the Document as Text
-  FilePath -> -- Filepath to write the Document to
-  a -> -- The Document
-  IO () -- Writing the file
-write' f fp doc = writeFileUtf8 fp $ f doc
+-- Write the content of a Document to a given filepath
+writeDocContentToPath ::
+  (Core.Document a -> Text.Text) -> -- Render the document as Text
+  FilePath -> -- The path to write the Document to
+  Core.Document a -> -- The Document
+  IO ()
+writeDocContentToPath render fp doc = writeFileUtf8 fp $ render doc
 
-qualifyPath ::
+-- Write a Document under a given root directory.
+writeDocUnderDir ::
+  (a -> Text.Text) ->
   FilePath ->
-  (String, a) ->
-  (FilePath, a)
-qualifyPath parentDir (name, doc) = (parentDir FilePath.</> name, doc)
-
-qualifyPaths ::
-  FilePath -> -- The parent directory
-  [(String, a)] -> -- The named documents
-  [(FilePath, a)] -- The filepaths for the documents
-qualifyPaths parentDir = map (qualifyPath parentDir)
-
-writes' ::
-  (FilePath -> a -> IO ()) -> -- Write a Document to a filepath
-  FilePath -> -- Filepath of the parent directory
-  [(String, a)] -> -- The list of named Documents
-  IO () -- Writing the file
-writes' writeF parentDir namedDocs =
-  mapM_
-    (uncurry writeF)
-    (qualifyPaths parentDir namedDocs)
-
-----------                 Subtext                ----------
-
-writeSubtext :: FilePath -> [Core.Authored] -> IO ()
-writeSubtext = write' Unparser.unparseAuthoreds
-
-writeSubtexts :: FilePath -> [(String, [Core.Authored])] -> IO ()
-writeSubtexts = writes' writeSubtext
-
-----------                  HTML                  ----------
-
-writeHtml :: FilePath -> Core.Document Core.Resolved -> IO ()
-writeHtml = write' Html.renderDoc
-
-writeHtmls :: FilePath -> [(String, Core.Document Core.Resolved)] -> IO ()
-writeHtmls = writes' writeHtml
+  Core.Document a ->
+  IO ()
+writeDocUnderDir render rootDir doc = writeDocContentToPath render (documentPath rootDir doc) doc
 
 ------------------------------------------------------------
 --                 Piping Subtext to HTML                 --
