@@ -145,19 +145,20 @@ resolved _ _ h (HeadingNotFound docName headingName) = h docName headingName
 
 resolveAuthored ::
   (Transclusion -> [Resolved]) -> -- Function to lookup transclusion references
-  [Authored] -> -- Document content that needs resolution
-  [Resolved] -- Resolved Document content
-resolveAuthored f as =
-  if all isRaw as
-    then fmap Present . catRaws $ as
-    else mconcat . fmap (authored (singleton . Present) f) $ as
+  Document Authored -> -- Document content that needs resolution
+  Document Resolved -- Resolved Document content
+resolveAuthored f authDoc =
+  if all isRaw . content $ authDoc
+    then liftD (fmap Present . catRaws) authDoc
+    else liftD (mconcat . fmap (authored (singleton . Present) f)) authDoc
 
 -- This is a function to convert all transclusion references to "ResourceNotFound".
--- The reason why we do this is so that we can 
-resolveWithoutLookup :: [Authored] -> [Resolved]
-resolveWithoutLookup = fmap resolve where
-  resolve (Raw b) = Present b
-  resolve (ToResolve t) = ResourceNotFound . target $ t
+-- The reason why we do this is so that we can
+resolveWithoutLookup :: Document Authored -> Document Resolved
+resolveWithoutLookup = fmap resolve
+  where
+    resolve (Raw b) = Present b
+    resolve (ToResolve t) = ResourceNotFound . target $ t
 
 {-
  ┌───────────────────────────┐

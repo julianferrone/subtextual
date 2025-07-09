@@ -125,9 +125,9 @@ docLevelDag ::
     (GraphContainsCycles Core.DocumentName)
     -- The list of DocumentNames, sorted topologically.
     --
-    -- Julian 20250708: We only want to do a single pass through a 
+    -- Julian 20250708: We only want to do a single pass through a
     -- Corpus Authored when transcluding the documents. That means whenever
-    -- we want to transclude a referenced document into the referencing 
+    -- we want to transclude a referenced document into the referencing
     -- document, we want to look up the already-processed version of the
     -- referenced document, which we do by looking up the document in the
     -- Corpus Resolved.
@@ -139,7 +139,7 @@ docLevelDag ::
     -- which contains Transclusions which need to be resolved, we by definition
     -- have already processed and resolved the documents it is referencing.
 
-    -- Hence we only need a single pass over the Corpus Authored to confidently 
+    -- Hence we only need a single pass over the Corpus Authored to confidently
     -- process all the Documents! i.e. by resolving their content
 
     -- Since we also know this list is only returned if there are no cycles,
@@ -149,7 +149,7 @@ docLevelDag ::
     -- ordering).
 
     -- Hence even in the worst-case scenario where there is only one document
-    -- which contains only raw content, we still only need the one pass - which 
+    -- which contains only raw content, we still only need the one pass - which
     -- we can do via a fold.
     [Core.DocumentName]
 docLevelDag authoredCorpus = output
@@ -195,22 +195,20 @@ sortDag g nameLookup = case cycles g of
 
 newtype GraphContainsCycles a = GraphContainsCycles [Graph.Tree a] deriving (Eq, Ord, Show)
 
-resolveFromCorpuses :: Core.DocumentName -> Corpus Core.Authored -> Corpus Core.Resolved -> Core.Document Core.Resolved
-resolveFromCorpuses docName authoredCorpus resolvedCorpus = case lookupContent docName authoredCorpus of
-  Nothing -> Core.document docName [Core.ResourceNotFound docName]
-  Just authoredDoc -> Core.document docName content
-    where
-      content = Core.resolveAuthored (resolveTransclusion resolvedCorpus) authoredDoc
+resolveFromCorpuses :: Corpus Core.Authored -> Core.DocumentName -> Corpus Core.Resolved -> Core.Document Core.Resolved
+resolveFromCorpuses auths name resolveds = case lookupDocument name auths of
+  Nothing -> Core.document name [Core.ResourceNotFound name]
+  Just authoredDoc -> Core.resolveAuthored (resolveTransclusion resolveds) authoredDoc
 
 addToCorpus :: Corpus Core.Authored -> [Core.DocumentName] -> Corpus Core.Resolved -> Corpus Core.Resolved
-addToCorpus authoredCorpus docNames resolvedCorpus =
+addToCorpus auths names resolveds =
   foldr
-    (updateResolvedCorpus authoredCorpus)
-    resolvedCorpus
-    docNames
+    (updateResolvedCorpus auths)
+    resolveds
+    names
   where
     updateResolvedCorpus :: Corpus Core.Authored -> Core.DocumentName -> Corpus Core.Resolved -> Corpus Core.Resolved
-    updateResolvedCorpus authoredCorpus docName resolvedCorpus = insertDoc (resolveFromCorpuses docName authoredCorpus resolvedCorpus) resolvedCorpus
+    updateResolvedCorpus auths name resolveds = insertDoc (resolveFromCorpuses auths name resolveds) resolveds
 
 resolveCorpus :: Corpus Core.Authored -> Either (GraphContainsCycles Core.DocumentName) (Corpus Core.Resolved)
 resolveCorpus authoredCorpus = do
