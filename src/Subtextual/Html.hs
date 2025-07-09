@@ -159,21 +159,12 @@ group shouldGroup = finalize . foldr step ([], Nothing)
     finalize (groups, Just ms) = Multiple ms : groups
     finalize (groups, Nothing) = groups
 
-documentHtml :: [Core.Block] -> Lucid.Html ()
-documentHtml = mconcat . map groupHtml . group'
-  where
-    groupHtml :: Group Core.Block -> Lucid.Html ()
-    groupHtml (Single b) = Lucid.toHtml . subtextHtml $ b
-    groupHtml (Multiple bs) = Lucid.ul_ $ (mconcat . map (Lucid.toHtml . subtextHtml)) bs
-
-    group' :: [Core.Block] -> [Group Core.Block]
-    group' doc = group doc []
-
-    group :: [Core.Block] -> [Group Core.Block] -> [Group Core.Block]
-    group [] done = (reverse . map reverseGroup) done
-    group (Core.Bullet b : todo) (Multiple bs : done) = group todo $ Multiple (Core.Bullet b : bs) : done
-    group (Core.Bullet b : todo) done = group todo $ Multiple [Core.Bullet b] : done
-    group (b : todo) done = group todo $ Single b : done
+instance (ToHtml a) => ToHtml (Group a) where
+  toHtml (Single s) = Lucid.toHtml . subtextHtml $ s
+  toHtml (Multiple ms) = Lucid.ul_ $ (mconcat . map (Lucid.toHtml . subtextHtml)) ms
+  
+  toHtmlRaw (Single s) = Lucid.toHtmlRaw . subtextHtml $ s
+  toHtmlRaw (Multiple ms) = Lucid.ul_ $ (mconcat . map (Lucid.toHtmlRaw . subtextHtml)) ms
 
 ----------     Subtext to HTML-formatted Text     ----------
 
