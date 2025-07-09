@@ -47,6 +47,16 @@ subtextFilesInDir dir = do
   return subtextFiles
 
 ------------------------------------------------------------
+--                          Paths                         --
+------------------------------------------------------------
+
+documentPath ::
+  FilePath -> -- Filepath to the root directory
+  Core.Document a -> -- Document
+  FilePath -- Filepath to the Document
+documentPath rootDir doc = rootDir FilePath.</> ((Text.unpack . Core.documentName $ doc) <> ".subtext")
+
+------------------------------------------------------------
 --                  Reading Subtext Files                 --
 ------------------------------------------------------------
 
