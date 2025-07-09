@@ -93,7 +93,9 @@ readSubtexts dir = do
 --                         Writing                        --
 ------------------------------------------------------------
 
-----------            Writing Document            ----------
+----------            Writing Generics            ----------
+
+------ Write Document a
 
 -- Write the content of a Document to a given filepath
 writeDocContentToPath ::
@@ -111,7 +113,7 @@ writeDocUnderDir ::
   IO ()
 writeDocUnderDir render rootDir doc = writeDocContentToPath render (documentPath rootDir doc) doc
 
-----------             Writing Corpus             ----------
+------ Write Corpus a
 
 writeCorpusToDir ::
   (Core.Document a -> Text.Text) -> -- Render a Document as Text
@@ -122,6 +124,10 @@ writeCorpusToDir render rootDir corpus' =
   mapM_
     (writeDocUnderDir render rootDir)
     (Transclusion.toDocuments corpus')
+
+----------             Writing Subtext            ----------
+
+----------              Writing HTML              ----------
 
 ------------------------------------------------------------
 --                 Piping Subtext to HTML                 --
