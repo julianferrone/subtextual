@@ -164,16 +164,24 @@ group shouldGroup = finalize . foldr step ([], Nothing)
     finalize (groups, Nothing) = groups
 
 instance (ToHtml a) => ToHtml (Group a) where
-  toHtml (Single s) = Lucid.toHtml . subtextHtml $ s
-  toHtml (Multiple ms) = Lucid.ul_ $ (mconcat . map (Lucid.toHtml . subtextHtml)) ms
-  
-  toHtmlRaw (Single s) = Lucid.toHtmlRaw . subtextHtml $ s
-  toHtmlRaw (Multiple ms) = Lucid.ul_ $ (mconcat . map (Lucid.toHtmlRaw . subtextHtml)) ms
+  toHtml (Single s) = Lucid.toHtml s
+  toHtml (Multiple ms) = Lucid.ul_ $ (mconcat . map Lucid.toHtml) ms
+
+  toHtmlRaw (Single s) = Lucid.toHtmlRaw s
+  toHtmlRaw (Multiple ms) = Lucid.ul_ $ (mconcat . map Lucid.toHtmlRaw) ms
+
+isResolvedBullet :: Core.Resolved -> Bool
+isResolvedBullet (Core.Present (Core.Bullet _)) = True
+isResolvedBullet _ = False
+
+instance ToHtml (SubtextHtml (Core.Document Core.Resolved)) where
+  toHtml = mconcat . fmap (Lucid.toHtml . fmap subtextHtml) . group isResolvedBullet . Core.content . unSubtextHtml
+  toHtmlRaw = mconcat . fmap (Lucid.toHtmlRaw . fmap subtextHtml) . group isResolvedBullet . Core.content . unSubtextHtml
 
 ----------     Subtext to HTML-formatted Text     ----------
 
 renderBlock :: Core.Block -> Text.Text
-renderBlock = toStrict . Lucid.renderText . toHtml . subtextHtml
+renderBlock = toStrict . Lucid.renderText . Lucid.toHtml . subtextHtml
 
-renderDoc :: [Core.Block] -> Text.Text
-renderDoc = toStrict . Lucid.renderText . documentHtml
+renderDoc :: Core.Document Core.Resolved -> Text.Text
+renderDoc = toStrict . Lucid.renderText . Lucid.toHtml . subtextHtml
