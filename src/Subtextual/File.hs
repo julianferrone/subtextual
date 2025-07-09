@@ -157,26 +157,23 @@ writeHtmlCorpus = writeCorpusToDir Html.renderDoc
 --                 Piping Subtext to HTML                 --
 ------------------------------------------------------------
 
-{-
-TODO: Fix so we transclude documents before piping to HTML
-I think we'll have to remove transcribing just one
-document at a time, as it might contain a transclusion reference.
+transcribeSubtextFileToHtml :: FilePath -> FilePath -> IO (Either String ())
+transcribeSubtextFileToHtml = _
 
-Instead we'll only allow operating on entire corpuses at once.
--}
+transcribeSubtextDirToHtml ::
+  FilePath -> -- The source directory
+  FilePath -> -- The target directory
+  IO
+    ( Either
+        (Transclusion.GraphContainsCycles Core.DocumentName) -- The graph is cyclic
+        [String] -- The list of files which failed to be parsed
+    )
+transcribeSubtextDirToHtml srcDir dstDir = do
+  (parserErrorMsgs, corpus) <- readSubtexts srcDir
+  case Transclusion.resolveCorpus corpus of
+    Left cycles -> return $ Left cycles
+    Right resolvedCorpus -> do
+      writeHtmlCorpus dstDir resolvedCorpus
+      return $ Right parserErrorMsgs
 
-transcribeSubtextDirToHtml :: FilePath -> FilePath -> IO [Either String ()]
-transcribeSubtextDirToHtml = _
-
--- transcribeSubtextDirToHtml srcDir dstDir = do
---   subtexts <- readSubtexts srcDir
---   let qualifyRightPath = fmap $ qualifyPath dstDir
---   let namedDocs = qualifyRightPath <$> subtexts
---   mapM
---     ( \case
---         Left err -> return (Left err)
---         Right (dst, doc) -> do
---           _ <- writeHtml dst doc
---           return (Right ())
---     )
---     namedDocs
+-- return parserErrorMsgs
