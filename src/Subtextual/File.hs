@@ -138,6 +138,15 @@ writeAuthoredCorpus = writeCorpusToDir (Unparser.unparseAuthoreds . Core.content
 
 ----------  Rendering Subtext to HTML and Writing ----------
 
+writeHtmlToPath :: FilePath -> Core.Document Core.Resolved -> IO ()
+writeHtmlToPath = writeDocContentToPath Html.renderDoc
+
+writeHtmlUnderDir :: FilePath -> Core.Document Core.Resolved -> IO ()
+writeHtmlUnderDir = writeDocUnderDir Html.renderDoc
+
+writeHtmlCorpus :: FilePath -> Transclusion.Corpus Core.Resolved -> IO ()
+writeHtmlCorpus = writeCorpusToDir Html.renderDoc
+
 ------------------------------------------------------------
 --                 Piping Subtext to HTML                 --
 ------------------------------------------------------------
