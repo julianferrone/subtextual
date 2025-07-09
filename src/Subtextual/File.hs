@@ -179,7 +179,7 @@ transcribeSubtextDirToHtml ::
   IO
     ( Either
         (Transclusion.GraphContainsCycles Core.DocumentName) -- The graph is cyclic
-        [String] -- The list of files which failed to be parsed
+        [String] -- The list of error messages during parsing
     )
 transcribeSubtextDirToHtml srcDir dstDir = do
   (parserErrorMsgs, corpus) <- readSubtexts srcDir
