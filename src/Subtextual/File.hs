@@ -9,6 +9,7 @@ module Subtextual.File
     writeHtmlToPath,
     writeHtmlUnderDir,
     writeHtmlCorpus,
+    transcribeSubtextFileToHtml,
     transcribeSubtextDirToHtml,
   )
 where
@@ -160,8 +161,17 @@ writeHtmlCorpus = writeCorpusToDir Html.renderDoc
 transcribeSubtextFileToHtml ::
   FilePath -> -- The source Subtext filepath to read from
   FilePath -> -- The target HTML filepath to write to
+  -- Left error if the file wasn't parsed,
+  -- Right () if the file was parsed and written
   IO (Either String ())
-transcribeSubtextFileToHtml = _
+transcribeSubtextFileToHtml src dst = do
+  subtext <- readSubtext src
+  case subtext of
+    Left errorMsg -> return $ Left errorMsg
+    Right docAuthored -> do
+      let docResolved = Core.resolveWithoutLookup docAuthored
+      writeHtmlToPath dst docResolved
+      return $ Right ()
 
 transcribeSubtextDirToHtml ::
   FilePath -> -- The source directory of Subtext files to read from
