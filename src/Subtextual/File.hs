@@ -125,18 +125,18 @@ writeCorpusToDir render rootDir corpus' =
     (writeDocUnderDir render rootDir)
     (Transclusion.toDocuments corpus')
 
-----------             Writing Subtext            ----------
+----------      Unparsing and Writing Subtext     ----------
 
-writeSubtextToPath :: FilePath -> Core.Document Core.Authored -> IO ()
-writeSubtextToPath = writeDocContentToPath (Unparser.unparseAuthoreds . Core.content)
+writeAuthoredToPath :: FilePath -> Core.Document Core.Authored -> IO ()
+writeAuthoredToPath = writeDocContentToPath (Unparser.unparseAuthoreds . Core.content)
 
-writeSubtextUnderDir :: FilePath -> Core.Document Core.Authored -> IO ()
-writeSubtextUnderDir = writeDocUnderDir (Unparser.unparseAuthoreds . Core.content)
+writeAuthoredUnderDir :: FilePath -> Core.Document Core.Authored -> IO ()
+writeAuthoredUnderDir = writeDocUnderDir (Unparser.unparseAuthoreds . Core.content)
 
-writeSubtextCorpus :: FilePath -> Transclusion.Corpus Core.Authored -> IO ()
-writeSubtextCorpus = writeCorpusToDir (Unparser.unparseAuthoreds . Core.content)
+writeAuthoredCorpus :: FilePath -> Transclusion.Corpus Core.Authored -> IO ()
+writeAuthoredCorpus = writeCorpusToDir (Unparser.unparseAuthoreds . Core.content)
 
-----------              Writing HTML              ----------
+----------  Rendering Subtext to HTML and Writing ----------
 
 ------------------------------------------------------------
 --                 Piping Subtext to HTML                 --
