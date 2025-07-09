@@ -50,7 +50,13 @@ subtextFilesInDir dir = do
 --                  Reading Subtext Files                 --
 ------------------------------------------------------------
 
-readSubtext :: FilePath -> IO (Either String (Core.Document Core.Authored))
+readSubtext ::
+  FilePath -> -- Path to the Subtext file
+  IO
+    ( Either
+        String -- Failure message during parsing
+        (Core.Document Core.Authored) -- successfully parsed Document Authored
+    )
 readSubtext fp = do
   file <- readFileUtf8 fp
   let result = parseOnly Parser.parseAuthoreds file
@@ -60,7 +66,13 @@ readSubtext fp = do
       let docName = Core.documentName . Text.pack . FilePath.takeBaseName $ fp
       return . Right $ Core.document docName doc'
 
-readSubtexts :: FilePath -> IO ([String], Transclusion.Corpus Core.Authored)
+readSubtexts ::
+  FilePath -> -- Path to the root directory
+  IO
+    ( [String], -- List of failure messages (during parsing)
+      Transclusion.Corpus Core.Authored -- Corpus Authored made of successfully 
+                                        -- parsed documents
+    )
 readSubtexts dir = do
   subtextFiles <- subtextFilesInDir dir
   fs <- mapM readSubtext subtextFiles
