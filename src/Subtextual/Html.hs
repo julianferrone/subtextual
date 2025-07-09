@@ -99,6 +99,47 @@ instance Lucid.ToHtml (SubtextHtml Core.Block) where
       ]
 
 ------------------------------------------------------------
+--                    Resolved to Html                    --
+------------------------------------------------------------
+
+instance Lucid.ToHtml (SubtextHtml Core.Resolved) where
+  toHtml (SubtextHtml (Core.Present b)) = Lucid.toHtml . subtextHtml $ b
+  toHtml (SubtextHtml (Core.ResourceNotFound dn)) =
+    Lucid.div_
+      [Lucid.class_ "resourceNotFound"]
+      ( (Lucid.toHtml . Text.pack) "Could not resolve resource: "
+          <> (Lucid.toHtml . subtextHtml) dn
+      )
+  toHtml (SubtextHtml (Core.HeadingNotFound dn h)) =
+    Lucid.div_
+      [Lucid.class_ "headingNotFound"]
+      ( mconcat
+          [ (Lucid.toHtml . Text.pack) "Could not resolve heading: ",
+            Lucid.toHtml h,
+            (Lucid.toHtml . Text.pack) " under resource: ",
+            (Lucid.toHtml . subtextHtml) dn
+          ]
+      )
+
+  toHtmlRaw (SubtextHtml (Core.Present b)) = Lucid.toHtmlRaw . subtextHtml $ b
+  toHtmlRaw (SubtextHtml (Core.ResourceNotFound dn)) =
+    Lucid.div_
+      [Lucid.class_ "resourceNotFound"]
+      ( (Lucid.toHtmlRaw . Text.pack) "Could not resolve resource: "
+          <> (Lucid.toHtmlRaw . subtextHtml) dn
+      )
+  toHtmlRaw (SubtextHtml (Core.HeadingNotFound dn h)) =
+    Lucid.div_
+      [Lucid.class_ "headingNotFound"]
+      ( mconcat
+          [ (Lucid.toHtmlRaw . Text.pack) "Could not resolve heading: ",
+            Lucid.toHtmlRaw h,
+            (Lucid.toHtmlRaw . Text.pack) " under resource: ",
+            (Lucid.toHtmlRaw . subtextHtml) dn
+          ]
+      )
+
+------------------------------------------------------------
 --                    Document to HTML                    --
 ------------------------------------------------------------
 
