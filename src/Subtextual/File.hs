@@ -77,7 +77,7 @@ readSubtext fp = do
   file <- readFileUtf8 fp
   let result = parseOnly Parser.parseAuthoreds file
   case result of
-    Left errMsg -> return $ Left errMsg
+    Left errMsg -> return . Left $ "Failed to parse file: " <> fp <> " due to: " <> errMsg
     Right doc' -> do
       let docName = Core.documentName . Text.pack . FilePath.takeBaseName $ fp
       return . Right $ Core.document docName doc'
