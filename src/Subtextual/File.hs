@@ -48,15 +48,15 @@ subtextFilesInDir dir = do
 --                  Reading Subtext Files                 --
 ------------------------------------------------------------
 
-readSubtext :: FilePath -> IO (Either String (String, [Core.Authored]))
+readSubtext :: FilePath -> IO (Either String (Core.Document Core.Authored))
 readSubtext fp = do
   file <- readFileUtf8 fp
   let result = parseOnly Parser.parseAuthoreds file
   case result of
     Left err -> return $ Left err
     Right doc' -> do
-      let docName = FilePath.takeBaseName fp
-      return $ Right (docName, doc')
+      let docName = Core.documentName . Text.pack . FilePath.takeBaseName $ fp
+      return . Right $ Core.document docName doc'
 
 readSubtexts :: FilePath -> IO [Either String (String, [Core.Authored])]
 readSubtexts dir = do
