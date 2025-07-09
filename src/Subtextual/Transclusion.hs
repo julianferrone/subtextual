@@ -5,6 +5,7 @@ module Subtextual.Transclusion
     lookupDocument,
     excerpt,
     resolveCorpus,
+    GraphContainsCycles,
   )
 where
 
