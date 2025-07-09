@@ -145,27 +145,35 @@ instance Lucid.ToHtml (SubtextHtml Core.Resolved) where
 
 data Group a
   = Single a
-  | Bullets [a]
+  | Multiple [a]
+
+group :: (a -> Bool) -> [a] -> [Group a]
+group shouldGroup = finalize . foldr step ([], Nothing)
+  where
+    step x (groups, acc) = case (shouldGroup x, acc) of
+      (True, Just ms) -> (groups, Just (x : ms))
+      (True, Nothing) -> (groups, Just [x])
+      (False, Just ms) -> (Single x : Multiple ms : groups, Nothing)
+      (False, Nothing) -> (Single x : groups, Nothing)
+
+    finalize (groups, Just ms) = Multiple ms : groups
+    finalize (groups, Nothing) = groups
 
 documentHtml :: [Core.Block] -> Lucid.Html ()
 documentHtml = mconcat . map groupHtml . group'
   where
     groupHtml :: Group Core.Block -> Lucid.Html ()
     groupHtml (Single b) = Lucid.toHtml . subtextHtml $ b
-    groupHtml (Bullets bs) = Lucid.ul_ $ (mconcat . map (Lucid.toHtml . subtextHtml)) bs
+    groupHtml (Multiple bs) = Lucid.ul_ $ (mconcat . map (Lucid.toHtml . subtextHtml)) bs
 
     group' :: [Core.Block] -> [Group Core.Block]
     group' doc = group doc []
 
     group :: [Core.Block] -> [Group Core.Block] -> [Group Core.Block]
     group [] done = (reverse . map reverseGroup) done
-    group (Core.Bullet b : todo) (Bullets bs : done) = group todo $ Bullets (Core.Bullet b : bs) : done
-    group (Core.Bullet b : todo) done = group todo $ Bullets [Core.Bullet b] : done
+    group (Core.Bullet b : todo) (Multiple bs : done) = group todo $ Multiple (Core.Bullet b : bs) : done
+    group (Core.Bullet b : todo) done = group todo $ Multiple [Core.Bullet b] : done
     group (b : todo) done = group todo $ Single b : done
-
-    reverseGroup :: Group a -> Group a
-    reverseGroup (Single s) = Single s
-    reverseGroup (Bullets bs) = Bullets $ reverse bs
 
 ----------     Subtext to HTML-formatted Text     ----------
 
