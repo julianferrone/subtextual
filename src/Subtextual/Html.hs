@@ -147,6 +147,10 @@ data Group a
   = Single a
   | Multiple [a]
 
+instance Functor Group where
+  fmap f (Single x) = Single $ f x
+  fmap f (Multiple xs) = Multiple $ fmap f xs
+
 group :: (a -> Bool) -> [a] -> [Group a]
 group shouldGroup = finalize . foldr step ([], Nothing)
   where
