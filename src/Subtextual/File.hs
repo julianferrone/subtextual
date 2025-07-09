@@ -157,12 +157,15 @@ writeHtmlCorpus = writeCorpusToDir Html.renderDoc
 --                 Piping Subtext to HTML                 --
 ------------------------------------------------------------
 
-transcribeSubtextFileToHtml :: FilePath -> FilePath -> IO (Either String ())
+transcribeSubtextFileToHtml ::
+  FilePath -> -- The source Subtext filepath to read from
+  FilePath -> -- The target HTML filepath to write to
+  IO (Either String ())
 transcribeSubtextFileToHtml = _
 
 transcribeSubtextDirToHtml ::
-  FilePath -> -- The source directory
-  FilePath -> -- The target directory
+  FilePath -> -- The source directory of Subtext files to read from
+  FilePath -> -- The target directory of HTML files to write to
   IO
     ( Either
         (Transclusion.GraphContainsCycles Core.DocumentName) -- The graph is cyclic
