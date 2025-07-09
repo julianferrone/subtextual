@@ -3,12 +3,11 @@
 module Subtextual.File
   ( readSubtext,
     readSubtexts,
-    writeSubtext,
-    writeSubtexts,
     transcribeSubtextDirToHtml,
   )
 where
 
+import Control.Monad
 import Data.Attoparsec.Text (parseOnly)
 import qualified Data.ByteString as ByteString
 import Data.Either
@@ -111,6 +110,18 @@ writeDocUnderDir ::
   Core.Document a -> -- The Document to write
   IO ()
 writeDocUnderDir render rootDir doc = writeDocContentToPath render (documentPath rootDir doc) doc
+
+----------             Writing Corpus             ----------
+
+writeCorpusToDir ::
+  (Core.Document a -> Text.Text) -> -- Render a Document as Text
+  FilePath -> -- The root directory of the corpus
+  Transclusion.Corpus a -> -- The list of Documents to write
+  IO ()
+writeCorpusToDir render rootDir corpus' =
+  mapM_
+    (writeDocUnderDir render rootDir)
+    (Transclusion.toDocuments corpus')
 
 ------------------------------------------------------------
 --                 Piping Subtext to HTML                 --
