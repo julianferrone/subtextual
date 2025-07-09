@@ -106,10 +106,10 @@ writeSubtexts = writes' writeSubtext
 
 ----------                  HTML                  ----------
 
-writeHtml :: FilePath -> [Core.Block] -> IO ()
+writeHtml :: FilePath -> Core.Document Core.Resolved -> IO ()
 writeHtml = write' Html.renderDoc
 
-writeHtmls :: FilePath -> [(String, [Core.Block])] -> IO ()
+writeHtmls :: FilePath -> [(String, Core.Document Core.Resolved)] -> IO ()
 writeHtmls = writes' writeHtml
 
 ------------------------------------------------------------
