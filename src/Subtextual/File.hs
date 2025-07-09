@@ -91,8 +91,10 @@ readSubtexts dir = do
   return (failureMsgs, corpusAuthored)
 
 ------------------------------------------------------------
---                  Writing Subtext Files                 --
+--                         Writing                        --
 ------------------------------------------------------------
+
+----------            Writing Document            ----------
 
 -- Write the content of a Document to a given filepath
 writeDocContentToPath ::
@@ -104,9 +106,9 @@ writeDocContentToPath render fp doc = writeFileUtf8 fp $ render doc
 
 -- Write a Document under a given root directory.
 writeDocUnderDir ::
-  (Core.Document a -> Text.Text) ->
-  FilePath ->
-  Core.Document a ->
+  (Core.Document a -> Text.Text) -> -- Render the document as Text
+  FilePath -> -- The root directory to write under
+  Core.Document a -> -- The Document to write
   IO ()
 writeDocUnderDir render rootDir doc = writeDocContentToPath render (documentPath rootDir doc) doc
 
