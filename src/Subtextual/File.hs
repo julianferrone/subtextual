@@ -54,7 +54,7 @@ documentPath ::
   FilePath -> -- Filepath to the root directory
   Core.Document a -> -- Document
   FilePath -- Filepath to the Document
-documentPath rootDir doc = rootDir FilePath.</> ((Text.unpack . Core.documentName $ doc) <> ".subtext")
+documentPath rootDir doc = rootDir FilePath.</> ((Text.unpack . Core.unDocumentName . Core.title $ doc) <> ".subtext")
 
 ------------------------------------------------------------
 --                  Reading Subtext Files                 --
@@ -104,7 +104,7 @@ writeDocContentToPath render fp doc = writeFileUtf8 fp $ render doc
 
 -- Write a Document under a given root directory.
 writeDocUnderDir ::
-  (a -> Text.Text) ->
+  (Core.Document a -> Text.Text) ->
   FilePath ->
   Core.Document a ->
   IO ()
