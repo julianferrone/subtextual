@@ -14,6 +14,7 @@ module Subtextual.Core
     Resolved (..),
     resolved,
     resolveAuthored,
+    resolveWithoutLookup,
     opts,
     target,
     Inline (..),
@@ -150,6 +151,13 @@ resolveAuthored f as =
   if all isRaw as
     then fmap Present . catRaws $ as
     else mconcat . fmap (authored (singleton . Present) f) $ as
+
+-- This is a function to convert all transclusion references to "ResourceNotFound".
+-- The reason why we do this is so that we can 
+resolveWithoutLookup :: [Authored] -> [Resolved]
+resolveWithoutLookup = fmap resolve where
+  resolve (Raw b) = Present b
+  resolve (ToResolve t) = ResourceNotFound . target $ t
 
 {-
  ┌───────────────────────────┐
