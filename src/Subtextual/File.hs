@@ -11,12 +11,14 @@ where
 
 import Data.Attoparsec.Text (parseOnly)
 import qualified Data.ByteString as ByteString
+import Data.Either
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Encoding
 import qualified Data.Text.IO as IO
 import qualified Subtextual.Core as Core
 import qualified Subtextual.Html as Html
 import qualified Subtextual.Parser as Parser
+import qualified Subtextual.Transclusion as Transclusion
 import qualified Subtextual.Unparser as Unparser
 import qualified System.Directory as Directory
 import qualified System.FilePath as FilePath
@@ -53,15 +55,18 @@ readSubtext fp = do
   file <- readFileUtf8 fp
   let result = parseOnly Parser.parseAuthoreds file
   case result of
-    Left err -> return $ Left err
+    Left errMsg -> return $ Left errMsg
     Right doc' -> do
       let docName = Core.documentName . Text.pack . FilePath.takeBaseName $ fp
       return . Right $ Core.document docName doc'
 
-readSubtexts :: FilePath -> IO [Either String (String, [Core.Authored])]
+readSubtexts :: FilePath -> IO ([String], Transclusion.Corpus Core.Authored)
 readSubtexts dir = do
   subtextFiles <- subtextFilesInDir dir
-  mapM readSubtext subtextFiles
+  fs <- mapM readSubtext subtextFiles
+  let (failureMsgs, documents) = partitionEithers fs
+  let corpusAuthored = Transclusion.fromDocuments documents
+  return (failureMsgs, corpusAuthored)
 
 ------------------------------------------------------------
 --                  Writing Subtext Files                 --
