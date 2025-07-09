@@ -3,6 +3,12 @@
 module Subtextual.File
   ( readSubtext,
     readSubtexts,
+    writeAuthoredToPath,
+    writeAuthoredUnderDir,
+    writeAuthoredCorpus,
+    writeHtmlToPath,
+    writeHtmlUnderDir,
+    writeHtmlCorpus,
     transcribeSubtextDirToHtml,
   )
 where
